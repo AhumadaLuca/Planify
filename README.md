@@ -1,4 +1,4 @@
-# 🎟️ Eventos_App — Aplicación de Eventos Interactivos
+# ✨ PLANIFY — Aplicación de Eventos Interactivos
 
 Una aplicación web que permite visualizar eventos en un mapa interactivo, administrar organizadores y eventos mediante un sistema con CRUD completo, autenticación mediante JWT y un panel de administración para moderación.
 
