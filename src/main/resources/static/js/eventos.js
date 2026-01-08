@@ -149,28 +149,98 @@ export async function verDetalles(eventoId, modoAdmin = false) {
 		abrirModalDetalle({
 			titulo: "Detalles del evento",
 			cuerpoHTML: `
-      <h5>${evento.titulo}</h5>
-      <p><b>Descripción:</b> ${evento.descripcion}</p>
-      <p><b>Fecha:</b> ${formatearFecha(evento.fechaInicio)} - ${formatearFecha(evento.fechaFin)}</p>
-      <p><b>Ubicación:</b> ${evento.ubicacion || 'No especificada'}</p>
-      <p><b>Precio:</b> ${evento.precio > 0 ? `$${evento.precio}` : 'Gratis'}</p><p><b>Verificación de edad:</b> ${evento.requiereVerificarEdad ? 'Sí' : 'No'}</p>
-      <p><b>Categoria:</b> ${evento.categoriaNombre}</p>
-      <p><b>Link externo:</b>${evento.urlVentaExterna || 'No disponible'}</p>
-      <p><b>Organizador:</b> ${evento.nombreOrganizador || 'Desconocido'}</p>
-      <p><b>Validado:</b> ${evento.validado ? '☑️ Sí' : '❌ No'}</p>
-      ${evento.imagenUrl ? `<img src="${evento.imagenUrl}" style="width:100%; border-radius:4px;">` : ''}
-      ${modoAdmin
-					? `<div class="text-center mt-3">
-						<button 
-						class="btn ${evento.validado ? 'btn-warning' : 'btn-success'} btn-confirmar-validar-evento"
-						data-bs-dismiss="modal" 
-						data-id="${evento.id}" 
-						data-estado="${evento.validado}">${evento.validado ? 'Invalidar Evento' : 'Validar Evento'}
-						</button>
-			 		</div>`
-					: ""
-				}
-    `, botonesHTML:
+  <div class="card border-0">
+    ${evento.imagenUrl ? `
+      <img src="${evento.imagenUrl}" alt="${evento.titulo}" class="card-img-top img-fluid rounded mb-3" style="object-fit:cover; max-height:360px;">
+    ` : ''}
+
+    <div class="card-body p-0">
+      <h5 class="card-title mb-2">${evento.titulo}</h5>
+
+      <div class="mb-2 d-flex flex-wrap gap-2">
+        <span class="badge bg-secondary">${evento.categoriaNombre || 'Sin categoría'}</span>
+        ${evento.validado ? '<span class="badge bg-success">Validado</span>' : '<span class="badge bg-danger">No validado</span>'}
+      </div>
+
+      <p class="card-text mb-3">${evento.descripcion || ''}</p>
+
+      <ul class="list-unstyled mb-3">
+        <li class="d-flex align-items-center mb-2">
+          <i class="ti ti-calendar evento-icon me-2" aria-hidden="true"></i>
+          <div><strong>Fecha:</strong><br>${formatearFecha(evento.fechaInicio)} - ${formatearFecha(evento.fechaFin)}</div>
+        </li>
+
+        <li class="d-flex align-items-center mb-2">
+          <i class="ti ti-map-pin evento-icon me-2" aria-hidden="true"></i>
+          <div><strong>Ubicación:</strong><br>${evento.ubicacion || 'No especificada'}</div>
+        </li>
+
+        <li class="d-flex align-items-center mb-2">
+          <i class="ti ti-currency-dollar evento-icon me-2" aria-hidden="true"></i>
+          <div><strong>Precio:</strong><br>${evento.precio > 0 ? `$${evento.precio}` : 'Gratis'}</div>
+        </li>
+
+        <li class="d-flex align-items-center mb-2">
+          <i class="ti ti-shield-check evento-icon me-2" aria-hidden="true"></i>
+          <div><strong>Verificación de edad:</strong><br>${evento.requiereVerificarEdad ? 'Sí' : 'No'}</div>
+        </li>
+
+        <li class="d-flex align-items-center mb-2">
+          <i class="ti ti-user evento-icon me-2" aria-hidden="true"></i>
+          <div><strong>Organizador:</strong><br>${evento.nombreOrganizador || 'Desconocido'}</div>
+        </li>
+
+        <li class="d-flex align-items-center mb-2">
+          <i class="ti ti-progress-help evento-icon me-2" aria-hidden="true"></i>
+          <div><strong>Validado:</strong><br>${evento.validado ? '☑️ Sí' : '❌ No'}</div>
+        </li>
+      </ul>
+
+      <div class="d-flex gap-2 mb-3">
+        ${evento.urlVentaExterna
+          ? `<a href="${evento.urlVentaExterna}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" style="height: 40px; width: 218px;">
+               <i class="ti ti-ticket me-1" aria-hidden="true"></i> Comprar entradas
+             </a>`
+          : `<button class="btn btn-outline-secondary btn-sm" disabled style="height: 40px; width: 218px;">
+               <i class="ti ti-ticket me-1" aria-hidden="true"></i> Entradas no disponibles
+             </button>`}
+      </div>
+
+      ${modoAdmin ? `
+        <div class="text-center mt-2">
+          <button
+            class="btn ${evento.validado ? 'btn-warning' : 'btn-success'} btn-confirmar-validar-evento"
+            data-bs-dismiss="modal"
+            data-id="${evento.id}"
+            data-estado="${evento.validado}">
+            ${evento.validado ? 'Invalidar Evento' : 'Validar Evento'}
+          </button>
+        </div>
+      ` : ''}
+
+      <!-- Sección FUTURA: aquí se pondrán las redes del organizador -->
+      
+      <div id="organizador-redes" class="mt-3" style="display: none;">
+        <!-- En una futura actualización podrás inyectar enlaces con iconos,
+             por ejemplo:
+             <a href="https://facebook.com/organizador" target="_blank" rel="noopener noreferrer" class="me-2">
+               <i class="ti ti-brand-facebook"></i>
+             </a>
+        -->
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .evento-icon { font-size:1.6rem; width:34px; text-align:center; color:#000; line-height: 1;}
+    .card-title { font-weight:600; font-size:1.05rem; }
+    .card-text { color:#333; margin-bottom:.75rem; }
+    /* Ajustes responsivos menores */
+    @media (max-width: 576px) {
+      img.card-img-top { max-height:240px; }
+    }
+  </style>
+`, botonesHTML:
 				`${modoAdmin
 
 					? `<button class="btn btn-secondary btn-volver-admin" data-bs-dismiss="modal">Volver al Panel</button>`

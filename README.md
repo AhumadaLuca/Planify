@@ -90,6 +90,13 @@ Una aplicación web que permite visualizar eventos en un mapa interactivo, admin
 
 ## 📘 Registro de versiones (resumen)
 
+- **v0.5.0 — 2026-01-08**
+  - Mejorado: Rediseño visual del modal de detalle de eventos e incorporación de iconografía para mejorar la legibilidad.
+  - Añadido: Botón de acción "Comprar entradas" con manejo de disponibilidad desde enlace externo.
+  - Mejorado: Incorporación de identidad visual propia (logo SVG y favicon) y reorganización de recursos gráficos.
+  - Mejorado: Actualización visual del menú con iconos más representativos y micro-animaciones.
+  - Corregido: Sincronización del estado de edición en eventos y funcionamiento del botón mostrar/ocultar contraseña en login.
+
 - **v0.4.1 — 2025-12-09**
   - Añadido: Sistema de filtros en el mapa (categorías, precio, rango de fechas), cache local `eventosCache`, botón "Quitar filtros".
   - Corregido: Fondo negro persistente al cerrar modal de detalle (backdrop duplicado) y validación de imagen al crear eventos (manejo correcto cuando no se sube imagen).

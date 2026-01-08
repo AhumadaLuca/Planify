@@ -10,12 +10,12 @@ export function initFormularioEvento() {
 	document.getElementById("nuevoEventoModal").addEventListener("hidden.bs.modal", () => {
 		console.log("🧹 Cerrando MODAL — limpiando formulario de evento...");
 		limpiarFormularioGenerico("#formEvento", {
-		idTitulo: "tituloModalEvento",
-		textoTitulo: "Nuevo Evento",
-		idBoton: "btnGuardarEvento",
-		textoBoton: "Crear Evento",
-		previewImagenSelector: "#previewImagenEvento"
-	});
+			idTitulo: "tituloModalEvento",
+			textoTitulo: "Nuevo Evento",
+			idBoton: "btnGuardarEvento",
+			textoBoton: "Crear Evento",
+			previewImagenSelector: "#previewImagenEvento"
+		});
 	});
 
 	const form = document.getElementById("formEvento");
@@ -55,7 +55,9 @@ export function initFormularioEvento() {
 	// GUARDAR EVENTO
 	form.addEventListener("submit", async function(e) {
 		e.preventDefault();
-
+		
+		const esEdicion = !!form.dataset.idEvento;
+		
 		const btnGuardar = document.querySelector("#btnGuardarEvento");
 		btnGuardar.disabled = true;
 		btnGuardar.textContent = "Guardando...";
@@ -107,7 +109,9 @@ export function initFormularioEvento() {
 				catch { showFieldError("eventoUrlVentaExterna", "La URL externa no es válida"); hasError = true; }
 			}
 
-			// Validación imagen (opcional)
+			// Validación imagen
+			console.log("dataset id:", form.dataset.idEvento);
+			console.log("esEdicion:", esEdicion);
 			if (imagenUrl) {
 				const validExt = ["image/jpeg", "image/png", "image/webp"];
 
@@ -121,7 +125,7 @@ export function initFormularioEvento() {
 				}
 				const ok = await validarDimensionesImagen(imagenUrl);
 				if (!ok) { showFieldError("eventoImagen", "La imagen debe ser mínimo 150x150 pixeles"); hasError = true; }
-			}else{
+			} else if (!esEdicion) {
 				showFieldError("eventoImagen", "Debe ingresar una imagen obligatoriamente del evento");
 				hasError = true;
 			}
@@ -147,7 +151,9 @@ export function initFormularioEvento() {
 			// Preparar FormData final
 			const data = new FormData();
 			data.append("evento", new Blob([JSON.stringify(evento)], { type: "application/json" }));
-			data.append("imagenUrl", imagenUrl);
+			if (imagenUrl) {
+				data.append("imagenUrl", imagenUrl);
+			}
 
 			const token = localStorage.getItem("token");
 
@@ -198,7 +204,7 @@ export function initFormularioEvento() {
 			const btnGuardar = document.querySelector("#btnGuardarEvento");
 			btnGuardar.disabled = false;
 
-			const idEvento = formEvento.dataset.idEvento;
+			const idEvento = form.dataset.idEvento;
 			btnGuardar.textContent = idEvento ? "Guardar Cambios" : "Crear Evento";
 		}
 	});
@@ -208,7 +214,7 @@ export function initFormularioEvento() {
 
 		const button = e.relatedTarget;
 		if (!button.classList.contains("btn-editar-evento")) {
-			  // ⬅Se llama a la función limpia
+			// ⬅Se llama a la función limpia
 			return; // ⬅️ así NO entra al bloque de edición
 		}
 

@@ -34,7 +34,6 @@ html, body {
   width: 250px;
   background-color: #212529;
   color: white;
-  padding-top: 1rem;
   z-index: 1000;
 }
 
@@ -182,6 +181,19 @@ header nav {
   height: 300px; /* o 100% del div contenedor */
   width: 100%;
   border-radius: 8px;
+}
+
+/* Animacion iconos */
+
+.menu-item i {
+	display: inline-block;
+  transition: transform 0.3s ease;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.menu-item:hover i {
+  transform: scale(1.18);
 }
 
 

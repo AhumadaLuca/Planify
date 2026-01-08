@@ -24,7 +24,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
 
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/images/**","/uploads/**").permitAll()
+                .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/images/**","/uploads/**","/assets/**").permitAll()
                 .requestMatchers("/api/auth/**","/api/eventos","/api/eventos/{id}","/issuer/**","/api/organizadores/**").permitAll() // registro / login libres / mostrar eventos
                 .requestMatchers("/api/eventos/**").hasAnyRole("ORGANIZADOR","ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")

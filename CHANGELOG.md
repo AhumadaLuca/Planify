@@ -3,6 +3,27 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 
 ---
 
+## [v0.5.0] - 2026-01-08
+
+### Añadido
+- Rediseño visual del modal de detalle de eventos: imagen en la cabecera y contenido con jerarquía visual.
+- Iconografía en el detalle de eventos usando Tabler Icons para fecha, ubicación, precio, organizador, validación, etc.
+- Botón de acción "Comprar entradas" que abre el enlace de venta en nueva pestaña; si no hay enlace, se muestra un botón deshabilitado.
+- Identidad visual con logo SVG propio mostrado junto al nombre "Planify" (header/título).
+- Favicon configurado usando el SVG del logo desde `assets/icons`.
+- Estructura estándar para recursos gráficos en `assets/icons` (preparación para variantes PNG/tamaños).
+- Preparación de sección de redes sociales del organizador (estructura lista, oculta hasta la implementación).
+
+### Mejorado
+- Tamaño y color de iconos del modal aumentados para mejor contraste y jerarquía visual.
+- Actualización visual del menú y micro-animaciones CSS en los iconos al pasar el cursor.
+
+### Corregido
+- Sincronización del estado de edición en el formulario de eventos: `esEdicion` evaluado en tiempo de ejecución para permitir conservar la imagen existente si no se selecciona una nueva.
+- Funcionamiento del botón mostrar/ocultar contraseña: agregado `data-password` al input y corrección del script de alternancia.
+
+---
+
 ## [v0.4.1] - 2025-12-09
 
 ### Añadido
