@@ -21,6 +21,13 @@ export function initFormularioEvento() {
 	const form = document.getElementById("formEvento");
 	if (!form) return;
 
+	// Contenedores DOM (se asignan en initRedesUI)
+	let redesWrapper = null;
+	let btnAddLink = null;
+	const MAX_LINKS = 12;
+
+	initRedesUI();
+
 	const errBox = document.getElementById("eventoError");
 
 	// escuchar inputs una sola vez (no dentro del submit)
@@ -51,13 +58,192 @@ export function initFormularioEvento() {
 		error.classList.add("d-none");
 	}
 
+	// ------------------ Helpers y UI Redes Sociales ------------------
+	function obtenerIconoPorTipo(type) {
+	// retorna un string con SVG (icons minimalistas)
+	switch (type) {
+		case 'FACEBOOK': return `<i class="ti ti-brand-facebook fs-3"></i>`;
+		case 'INSTAGRAM': return `<i class="ti ti-brand-instagram fs-3"></i>`;
+		case 'YOUTUBE': return `<i class="ti ti-brand-youtube fs-3"></i>`;
+		case 'TWITTER': return `<i class="ti ti-brand-x fs-3"></i>`;
+		case 'TIKTOK': return `<i class="ti ti-brand-facebook fs-3"></i>`;
+		case 'WHATSAPP': return `<i class="ti ti-brand-tiktok fs-3"></i>`;
+		default:
+			return `<i class="ti ti-link"></i>`;
+	}
+}
+	
+	function detectarRedSocialPorTipo(url) {
+		if (!url) return 'OTHER';
+		try {
+			// aseguramos esquema para parsing
+			const u = new URL(url.startsWith('http') ? url : 'https://' + url);
+			const host = u.hostname.toLowerCase();
+			if (host.includes('facebook.com')) return 'FACEBOOK';
+			if (host.includes('instagram.com')) return 'INSTAGRAM';
+			if (host.includes('youtube.com') || host.includes('youtu.be')) return 'YOUTUBE';
+			if (host.includes('twitter.com') || host.includes('x.com')) return 'TWITTER';
+			if (host.includes('tiktok.com')) return 'TIKTOK';
+			if (host.includes('wa.me') || host.includes('whatsapp.com')) return 'WHATSAPP';
+			// si es dominio genérico con www o sin subdominio
+			if (host.match(/\.[a-z]{2,}$/)) return 'WEBSITE';
+		} catch (e) {
+			return 'OTHER';
+		}
+		return 'OTHER';
+	}
+
+
+	// Normalizar: si no tiene esquema, le agregamos https://
+	function normalizarUrl(url) {
+		if (!url) return url;
+		if (!/^https?:\/\//i.test(url)) {
+			return 'https://' + url;
+		}
+		return url;
+	}
+
+	function validarUrl(url) {
+		if (!url) return false;
+		try {
+			new URL(normalizarUrl(url));
+			return true;
+		} catch (e) {
+			return false;
+		}
+	}
+
+	function preloadRedes(redesArray) {
+		// redesArray: [{ id?, url, tipo? }, ...] o list of strings
+		if (!redesWrapper) return;
+		redesWrapper.innerHTML = '';
+		if (!Array.isArray(redesArray)) return;
+		redesArray.forEach(r => {
+			if (typeof r === 'string') addLinkRow({ url: r });
+			else addLinkRow({ id: r.id, url: r.url || r.url });
+		});
+	}
+
+
+	// agregar una fila de link al DOM
+	function addLinkRow(data = null) {
+		// data = { id?, url? }
+		if (!redesWrapper) return;
+		const count = redesWrapper.querySelectorAll('.red-row').length;
+		if (count >= MAX_LINKS) {
+			alert(`Máximo ${MAX_LINKS} links permitidos.`);
+			return;
+		}
+
+		const row = document.createElement('div');
+		row.className = 'red-row d-flex gap-2 align-items-center mb-2';
+
+		const inputGroup = document.createElement('div');
+		inputGroup.className = 'red-input-group d-flex gap-2 align-items-center flex-grow-1';
+
+		const iconBox = document.createElement('div');
+		iconBox.className = 'red-icon d-inline-flex align-items-center justify-content-center';
+		iconBox.style.width = '36px';
+		iconBox.style.height = '36px';
+		// icono de placeholder (puedes usar Tabler aquí)
+		iconBox.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1010 10A10 10 0 0012 2zm1 14h-2v-2h2zm0-4h-2V6h2z"/></svg>`;
+
+		const input = document.createElement('input');
+		input.type = 'url';
+		input.className = 'form-control red-url-input';
+		input.placeholder = 'https://ejemplo.com/mi-perfil';
+		input.setAttribute('aria-label', 'Link de red social o página web');
+
+		const hiddenId = document.createElement('input');
+		hiddenId.type = 'hidden';
+		hiddenId.className = 'link-id';
+		if (data && data.id) hiddenId.value = data.id;
+
+		// detectar tipo mientras escribe (debounce)
+		let tmr;
+		input.addEventListener('input', () => {
+			clearTimeout(tmr);
+			tmr = setTimeout(() => {
+				const v = input.value.trim();
+				if (!v) {
+					iconBox.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1010 10A10 10 0 0012 2zm1 14h-2v-2h2zm0-4h-2V6h2z"/></svg>`;
+					return;
+				}
+				const tipo = detectarRedSocialPorTipo(v);
+				iconBox.innerHTML = obtenerIconoPorTipo(tipo);
+				iconBox.title = tipo;
+				// Si querés usar Tabler, aquí podés crear <i data-tabler-icon="brand-instagram">...
+				// Ejemplo simple: dejar title y no cambiar el SVG por ahora.
+			}, 220);
+		});
+
+		if (data && data.url) {
+			input.value = data.url;
+			iconBox.title = detectarRedSocialPorTipo(data.url);
+		}
+
+		const btnRemove = document.createElement('button');
+		btnRemove.type = 'button';
+		btnRemove.className = 'btn btn-link btn-remove-link p-1 text-danger';
+		btnRemove.title = 'Eliminar link';
+		btnRemove.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M9 3v1H4v2h1v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1V4h-5V3H9zm2 4h2v11h-2V7z"/></svg>`;
+		btnRemove.addEventListener('click', () => row.remove());
+
+		inputGroup.appendChild(iconBox);
+		inputGroup.appendChild(input);
+		inputGroup.appendChild(hiddenId);
+
+		row.appendChild(inputGroup);
+		row.appendChild(btnRemove);
+
+		redesWrapper.appendChild(row);
+		input.focus();
+	}
+
+	// colectar links desde DOM (para envío)
+	function agarrarRedesDOM() {
+		if (!redesWrapper) return [];
+		const rows = Array.from(redesWrapper.querySelectorAll('.red-row'));
+		const redes = [];
+		for (const r of rows) {
+			const urlInput = r.querySelector('.red-url-input');
+			const idInput = r.querySelector('.link-id');
+			const raw = urlInput ? urlInput.value.trim() : '';
+			if (!raw) continue;
+			const url = normalizarUrl(raw);
+			if (!validarUrl(url)) {
+				throw new Error(`URL inválida: ${raw}`);
+			}
+			redes.push({
+				id: idInput && idInput.value ? Number(idInput.value) : null,
+				url,
+				tipo: detectarRedSocialPorTipo(url)
+			});
+		}
+		return redes;
+	}
+
+	// inicializar referencias DOM (llamar desde initFormularioEvento)
+	function initRedesUI() {
+		redesWrapper = document.getElementById('redesWrapper');
+		btnAddLink = document.getElementById('btnAddLink');
+
+		// si no existe el contenedor, no hacemos nada (para compatibilidad)
+		if (!redesWrapper || !btnAddLink) return;
+
+		// añadir una fila vacía por defecto si no hay ninguna
+		if (redesWrapper.querySelectorAll('.red-row').length === 0) addLinkRow();
+
+		btnAddLink.addEventListener('click', () => addLinkRow());
+	}
+
 	console.log("🎯 initFormularioOrganizador cargado correctamente");
 	// GUARDAR EVENTO
 	form.addEventListener("submit", async function(e) {
 		e.preventDefault();
-		
+
 		const esEdicion = !!form.dataset.idEvento;
-		
+
 		const btnGuardar = document.querySelector("#btnGuardarEvento");
 		btnGuardar.disabled = true;
 		btnGuardar.textContent = "Guardando...";
@@ -133,6 +319,25 @@ export function initFormularioEvento() {
 			if (hasError) {
 				return;
 			}
+
+			// recolectar redes desde el DOM (validará URLs y lanzará error si alguna inválida)
+			let redesSociales = [];
+			try {
+				redesSociales = agarrarRedesDOM();
+			} catch (err) {
+				// mostrar mensaje global en errBox o con showFieldError
+				if (errBox) {
+					errBox.classList.remove('d-none');
+					errBox.innerText = err.message;
+				} else {
+					alert(err.message);
+				}
+				btnGuardar.disabled = false;
+				btnGuardar.textContent = esEdicion ? "Guardar Cambios" : "Crear Evento";
+				return;
+			}
+
+			
 			// Armar objeto evento plano
 			const evento = {
 				titulo,
@@ -145,7 +350,8 @@ export function initFormularioEvento() {
 				precio,
 				urlVentaExterna,
 				requiereVerificarEdad,
-				categoriaId
+				categoriaId,
+				redesSociales
 			};
 
 			// Preparar FormData final
@@ -156,6 +362,7 @@ export function initFormularioEvento() {
 			}
 
 			const token = localStorage.getItem("token");
+
 
 			const idEvento = form.dataset.idEvento; // ← se lee el atributo que guardamos antes
 			const method = idEvento ? "PUT" : "POST";
@@ -228,6 +435,8 @@ export function initFormularioEvento() {
 				throw new Error("No se pudo obtener el evento");
 			}
 			const evento = await response.json();
+			
+			preloadRedes(evento.redesSociales || []);
 
 			console.log(evento);
 
@@ -330,6 +539,8 @@ export function initFormularioEvento() {
 			});
 		}
 	});
+
+
 
 	async function validarDimensionesImagen(file) {
 		return new Promise(resolve => {

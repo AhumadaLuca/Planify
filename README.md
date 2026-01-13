@@ -90,6 +90,14 @@ Una aplicación web que permite visualizar eventos en un mapa interactivo, admin
 
 ## 📘 Registro de versiones (resumen)
 
+- **v0.6.0 — 2026-01-13**
+  - Añadido: Sistema de **redes sociales por evento**, permitiendo asociar múltiples enlaces a cada evento mediante una entidad dedicada en el backend.
+  - Añadido: Enumeración de tipo de red social (Facebook, Instagram, YouTube, Twitter/X, TikTok, WhatsApp, sitio web u otros) para una correcta clasificación y visualización.
+  - Mejorado: Formulario de creación y edición de eventos con inputs dinámicos para agregar y eliminar redes sociales, validación de URLs, normalización automática de enlaces y detección del tipo de red según el dominio ingresado.
+  - Mejorado: Visualización de redes sociales en la vista de detalle del evento, en el mapa interactivo y en el panel del organizador, utilizando iconografía consistente (Tabler Icons).
+  - Mejorado: Refactorización de la lógica de enlaces sociales en el frontend mediante helpers reutilizables para detección, validación y renderizado.
+  - Corregido: Problema de serialización JSON al cargar eventos con redes sociales asociadas, evitando ciclos infinitos entre entidades y restableciendo la correcta carga del mapa y las vistas públicas.
+
 - **v0.5.0 — 2026-01-08**
   - Mejorado: Rediseño visual del modal de detalle de eventos e incorporación de iconografía para mejorar la legibilidad.
   - Añadido: Botón de acción "Comprar entradas" con manejo de disponibilidad desde enlace externo.

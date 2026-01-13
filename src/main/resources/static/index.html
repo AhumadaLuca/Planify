@@ -30,16 +30,16 @@
 			<h5 style="margin: 0;margin-right: 20px; padding-inline: 12px;">Planify</h5>
 		</div>
 
-		<a href="#" class="menu-item d-flex justify-content-center align-items-center w-100 text-decoration-none gap-2" style="padding-left:0px;"
-			data-bs-toggle="collapse" data-bs-target="#usuarioMenu" aria-expanded="false">
+		<a href="#" class="menu-item d-flex justify-content-center align-items-center w-100 text-decoration-none gap-2"
+			style="padding-left:0px;" data-bs-toggle="collapse" data-bs-target="#usuarioMenu" aria-expanded="false">
 			<i class="ti ti-user-filled fs-4" aria-hidden="true"></i>
 			<span>Organizadores</span>
 		</a>
 		<div class="collapse ps-3" id="usuarioMenu">
 			<!-- Cambiar dinámicamente según sesión -->
 		</div>
-		<a href="#" class="menu-item d-flex justify-content-center align-items-center w-100 text-decoration-none gap-2" style="padding-left:0px;"
-			data-bs-toggle="modal" data-bs-target="#filtrosModal">
+		<a href="#" class="menu-item d-flex justify-content-center align-items-center w-100 text-decoration-none gap-2"
+			style="padding-left:0px;" data-bs-toggle="modal" data-bs-target="#filtrosModal">
 			<i class="ti ti-filter-filled fs-4" aria-hidden="true"></i>
 			<span>Filtros</span>
 		</a>
@@ -287,10 +287,21 @@
 							</div>
 
 							<div class="col-md-6">
-								<label class="form-label">Enlace externo (opcional)</label>
+								<label class="form-label">Enlace compra externo</label>
 								<input type="url" name="urlVentaExterna" id="eventoUrlVentaExterna" class="form-control"
 									placeholder="https://www.tuentrada.com/evento123" />
 								<small class="invalid-feedback d-none" id="errorUrlVentaExterna"></small>
+							</div>
+							<div class="col-md-12">
+								<label class="form-label">Redes sociales / Página web</label>
+								<div id="redesWrapper" class="mb-2">
+									<!-- aquí se agregarán las filas dinámicamente -->
+								</div>
+								<button type="button" id="btnAddLink" class="btn btn-outline-primary btn-sm mb-3">
+									+ Agregar link
+								</button>
+								<small class="form-text text-muted">Ingresa URLs completas (https://...). Se detectará
+									el ícono automáticamente.</small>
 							</div>
 							<div class="col-md-6 d-flex align-items-center">
 								<div class="form-check mt-3">
@@ -421,9 +432,10 @@
 									<th>Fecha fin</th>
 									<th>Imagen</th>
 									<th>Precio</th>
-									<th>URL externa</th>
+									<th>URL compra externa</th>
 									<th>+18</th>
 									<th>Validado</th>
+									<th>Redes Sociales</th>
 									<th>Acciones</th>
 								</tr>
 							</thead>

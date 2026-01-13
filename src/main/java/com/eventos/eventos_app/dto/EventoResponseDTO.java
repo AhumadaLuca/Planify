@@ -1,6 +1,7 @@
 package com.eventos.eventos_app.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import lombok.Data;
 
@@ -28,5 +29,7 @@ public class EventoResponseDTO {
     public Long organizadorId;
     public String nombreOrganizador;
     public String fotoOrganizador;
+    
+    public List<RedSocialLinkDTO> redesSociales;
 
 }

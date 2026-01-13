@@ -3,6 +3,8 @@ package com.eventos.eventos_app.models;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -46,6 +48,8 @@ public class Evento {
 
     @Column(name = "url_venta_externa", nullable = true)
     private String urlVentaExterna;
+    
+    
 
     @Column(name = "requiere_verificar_edad", nullable = false)
     private Boolean requiereVerificarEdad;
@@ -68,6 +72,9 @@ public class Evento {
     @JoinColumn(name = "organizador_id", nullable = false)
     @JsonBackReference
     private Organizador organizador;
+    
+    @OneToMany(mappedBy = "evento", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RedSocialLink> redesSociales = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {
@@ -198,7 +205,8 @@ public class Evento {
 		this.validado = validado;
 	}
 	
-	
+	public List<RedSocialLink> getRedesSociales() { return redesSociales; }
+	public void setRedesSociales(List<RedSocialLink> redesSociales) { this.redesSociales = redesSociales; }
     
     
     

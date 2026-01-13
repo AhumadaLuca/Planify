@@ -1,6 +1,7 @@
 package com.eventos.eventos_app.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import lombok.Data;
 
@@ -19,5 +20,6 @@ public class EventoRequestDTO {
     public Boolean requiereVerificarEdad;
     public Long categoriaId;
     public String imagenUrl;
+    public List<RedSocialLinkDTO> redesSociales;
 
 }

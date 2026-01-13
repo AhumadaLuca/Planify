@@ -170,6 +170,15 @@ header nav {
   border-radius: 5px;
 }
 
+.red-icon i {
+  font-size: 1.2rem;
+  transition: transform .2s ease, color .2s ease;
+}
+
+.red-icon i:hover {
+  transform: scale(1.15);
+}
+
 @media (max-width: 768px) {
   header nav {
     left: 0;

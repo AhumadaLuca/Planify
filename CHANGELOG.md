@@ -3,6 +3,43 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 
 ---
 
+## [v0.6.0] - 2026-01-13
+
+### Añadido
+- Incorporación de un sistema dedicado de **redes sociales por evento**:
+  - Se añadió una nueva entidad (`RedSocial` / `SocialLink`) para almacenar enlaces de redes sociales asociados a un `Evento`, permitiendo múltiples links por evento.
+  - Se introdujo un enumerador para el tipo de red (Facebook, Instagram, YouTube, Twitter/X, TikTok, WhatsApp, Website, OTHER), facilitando la clasificación y renderizado de iconografía en el frontend.
+- Integración completa de redes sociales en el payload de creación/actualización de eventos:
+  - `EventoRequestDTO` y `EventoResponseDTO` ampliados para incluir `redesSociales` (lista de objetos `{ id?, tipo?, url }`).
+- Soporte frontend para subida combinada:
+  - Envío de `evento` como JSON dentro de `FormData` junto con la imagen, permitiendo crear/editar evento y sus redes en una sola petición multipart.
+
+### Mejorado
+- Formulario de creación/edición:
+  - Inputs dinámicos para añadir/eliminar links de redes sociales (fila por link) con validación y normalización automática de URL (se agrega `https://` si falta).
+  - Detección automática del tipo de red según dominio mientras el usuario escribe (feedback visual con icono dinámico).
+  - Pre-carga de links existentes al abrir el modal en modo edición.
+- Visualización:
+  - Vista de detalles: renderizado de links con iconos representativos (soporte para Tabler Icons con fallback SVG).
+  - Mapa interactivo: los eventos devueltos por la API incluyen sus redes sociales, permitiendo acceder a los enlaces desde los marcadores/popups.
+  - Panel del organizador: columna de "Redes Sociales" en la lista de eventos con íconos y enlaces clickeables; se muestra un indicador `+N` si hay más links de los mostrados.
+- Frontend (helpers y refactor):
+  - Centralización de lógica de enlaces en helpers reutilizables: `normalizarUrl`, `validarUrl`, `detectarRedSocialPorTipo`, `preloadRedes`, `collectRedesFromDOM`, `renderSocialLinksForTable`.
+  - Reducción de duplicación de código entre formularios y vistas y mejora de mantenibilidad.
+
+### Corregido
+- Prevención de errores de serialización / JSON inválido:
+  - Se solucionó un problema causado por la serialización de la relación bidireccional Evento ↔ RedSocial que producía JSON inválido al listar eventos.
+  - Ajustes en la serialización (uso de `@JsonIgnore` o `@JsonManagedReference`/`@JsonBackReference` según el caso) para evitar ciclos y garantizar respuestas válidas para el frontend.
+- Manejo de edición y sincronización:
+  - Corregida la sincronización del flujo de edición para evitar referencias a variables `evento` fuera de scope y lecturas prematuras (TDZ). Ahora la precarga de redes sólo ocurre en el flujo de edición tras recibir la respuesta del backend.
+- Validaciones y robustez:
+  - Validación adicional en backend para URLs y límite máximo de links por evento.
+  - Validaciones frontend mejoradas con mensajes visibles en el modal (errores de URL, límite de links, imágenes, etc.).
+
+
+---
+
 ## [v0.5.0] - 2026-01-08
 
 ### Añadido
