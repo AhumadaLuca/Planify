@@ -1,29 +1,37 @@
 // eventos.js
-import { formatearFecha } from './utils.js';
+import { formatearFecha } from "./utils.js";
 import { abrirModalDetalle } from "./modalDetallesGenerico.js";
+import { detectarRedSocialPorTipo, normalizarUrl, obtenerIconoPorTipo } from "./redesSociales.js";
 
 // Cache en memoria (se carga una sola vez por sesión)
 export let eventosCache = [];
+let lastFetch = 0;
+const CACHE_TTL = 60_000;
 
-export async function cargarEventos(map) {
+export const markersByEventId = new Map();
+
+export async function cargarEventos(map, { force = false } = {}) {
 	try {
-		// Si ya tenemos caché, usarlo directamente
-		if (eventosCache.length > 0) {
+		const ahora = Date.now();
+		const cacheValido = eventosCache.length > 0 && (ahora - lastFetch) < CACHE_TTL;
+
+		// 👉 Usar cache si es válido y no forzamos
+		if (cacheValido && !force) {
 			dibujarEventosEnMapa(eventosCache);
-			console.log(eventosCache);
 			return eventosCache;
 		}
 
-		// Si no hay caché → pedir al backend
+		// 👉 Pedir al backend
 		const resp = await fetch("http://localhost:8080/api/eventos");
+		if (!resp.ok) throw new Error("Error al obtener eventos");
+
 		const eventos = await resp.json();
 
-		// Guardar en caché
+		// 👉 Actualizar cache
 		eventosCache = eventos;
+		lastFetch = ahora;
 
-		// Dibujar en el mapa
 		dibujarEventosEnMapa(eventos);
-
 		return eventos;
 
 	} catch (err) {
@@ -39,7 +47,14 @@ export function dibujarEventosEnMapa(eventos) {
 
 	console.log(eventos);
 
+	// limpiar markers anteriores
+	markersByEventId.forEach(marker => {
+		window.mapInstance.removeLayer(marker);
+	});
+	markersByEventId.clear();
+
 	eventos.forEach(evento => {
+
 		// Crear un div real
 		const popupDiv = document.createElement('div');
 		popupDiv.style.width = '230px';
@@ -88,9 +103,11 @@ export function dibujarEventosEnMapa(eventos) {
 		popupDiv.appendChild(btn);
 
 		// Agregar el popup al marker
-		L.marker([evento.latitud, evento.longitud])
+		const marker = L.marker([evento.latitud, evento.longitud])
 			.addTo(window.eventMarkersLayer)
 			.bindPopup(popupDiv);
+
+		markersByEventId.set(evento.id, marker);
 	});
 }
 
@@ -102,7 +119,22 @@ const iconosPorCategoria = {
 	"default": "❓"
 };
 
-function obtenerIconoCategoria(nombreCat) {
+export function enfocarEventoEnMapa(evento) {
+	const marker = markersByEventId.get(evento.id);
+	if (!marker) return;
+
+	const latlng = marker.getLatLng();
+
+	window.mapInstance.setView(latlng, 15, {
+		animate: true
+	});
+
+	setTimeout(() => {
+		marker.openPopup();
+	}, 300);
+}
+
+export function obtenerIconoCategoria(nombreCat) {
 	return iconosPorCategoria[nombreCat] || iconosPorCategoria.default;
 }
 
@@ -377,85 +409,42 @@ function renderizarRedesSocialesContenedor(redesArray, containerElement) {
 	containerElement.appendChild(list);
 }
 
-// ------------------ Helpers: detección y SVG icons ------------------
-function detectarRedSocialPorTipo(url) {
-	if (!url) return 'OTHER';
-	try {
-		// aseguramos esquema para parsing
-		const u = new URL(url.startsWith('http') ? url : 'https://' + url);
-		const host = u.hostname.toLowerCase();
-		if (host.includes('facebook.com')) return 'FACEBOOK';
-		if (host.includes('instagram.com')) return 'INSTAGRAM';
-		if (host.includes('youtube.com') || host.includes('youtu.be')) return 'YOUTUBE';
-		if (host.includes('twitter.com') || host.includes('x.com')) return 'TWITTER';
-		if (host.includes('tiktok.com')) return 'TIKTOK';
-		if (host.includes('wa.me') || host.includes('whatsapp.com')) return 'WHATSAPP';
-		// si es dominio genérico con www o sin subdominio
-		if (host.match(/\.[a-z]{2,}$/)) return 'WEBSITE';
-	} catch (e) {
-		return 'OTHER';
-	}
-	return 'OTHER';
-}
-
-function obtenerIconoPorTipo(type) {
-	// retorna un string con SVG (icons minimalistas)
-	switch (type) {
-		case 'FACEBOOK': return `<i class="ti ti-brand-facebook"></i>`;
-		case 'INSTAGRAM': return `<i class="ti ti-brand-instagram"></i>`;
-		case 'YOUTUBE': return `<i class="ti ti-brand-youtube"></i>`;
-		case 'TWITTER': return `<i class="ti ti-brand-x"></i>`;
-		case 'TIKTOK': return `<i class="ti ti-brand-facebook"></i>`;
-		case 'WHATSAPP': return `<i class="ti ti-brand-tiktok"></i>`;
-		default:
-			return `<i class="ti ti-link"></i>`;
-	}
-}
-
-// Normalizar: si no tiene esquema, le agregamos https://
-function normalizarUrl(url) {
-	if (!url) return url;
-	if (!/^https?:\/\//i.test(url)) {
-		return 'https://' + url;
-	}
-	return url;
-}
 
 function tablasRedesSociales(redes) {
-  if (!Array.isArray(redes) || redes.length === 0) return '—';
+	if (!Array.isArray(redes) || redes.length === 0) return '—';
 
-  // Aseguramos que la estructura sea [{url, tipo, id?}] o strings
-  const items = redes.map(r => typeof r === 'string' ? { url: r } : r);
+	// Aseguramos que la estructura sea [{url, tipo, id?}] o strings
+	const items = redes.map(r => typeof r === 'string' ? { url: r } : r);
 
-  // Generamos pequeños badges (limitamos a 6 y mostramos "+N" si hay más)
-  const maxShow = 6;
-  const visibles = items.slice(0, maxShow);
-  const extra = items.length - visibles.length;
+	// Generamos pequeños badges (limitamos a 6 y mostramos "+N" si hay más)
+	const maxShow = 6;
+	const visibles = items.slice(0, maxShow);
+	const extra = items.length - visibles.length;
 
-  const parts = visibles.map(it => {
-    const url = normalizarUrl(it.url);
-    const tipo = it.tipo || detectarRedSocialPorTipo(url);
-    // Escapamos texto de hostname para label (no el URL)
-    let label;
-    try {
-      label = new URL(url).hostname;
-    } catch (e) {
-      label = url;
-    }
+	const parts = visibles.map(it => {
+		const url = normalizarUrl(it.url);
+		const tipo = it.tipo || detectarRedSocialPorTipo(url);
+		// Escapamos texto de hostname para label (no el URL)
+		let label;
+		try {
+			label = new URL(url).hostname;
+		} catch (e) {
+			label = url;
+		}
 
-    // Si está Tabler disponible usamos data-tabler-icon; si no fallback a SVG
-    if (window.tablerIcons && typeof window.tablerIcons.createIcons === 'function') {
-      const ti = getTablerIconName(tipo);
-      // el <i> se convertirá en SVG cuando llames tablerIcons.createIcons()
-      return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="d-inline-flex align-items-center gap-1 px-2 py-1 me-1 mb-1 rounded border text-decoration-none" title="${label}"><i data-tabler-icon="${ti}" style="width:18px;height:18px"></i><span class="small">${label}</span></a>`;
-    } else {
-      // fallback con svg inline
-      return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="d-inline-flex align-items-center gap-1 px-2 py-1 me-1 mb-1 rounded border text-decoration-none" title="${label}">${obtenerIconoPorTipo(tipo)}<span class="small ms-1">${label}</span></a>`;
-    }
-  });
+		// Si está Tabler disponible usamos data-tabler-icon; si no fallback a SVG
+		if (window.tablerIcons && typeof window.tablerIcons.createIcons === 'function') {
+			const ti = getTablerIconName(tipo);
+			// el <i> se convertirá en SVG cuando llames tablerIcons.createIcons()
+			return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="d-inline-flex align-items-center gap-1 px-2 py-1 me-1 mb-1 rounded border text-decoration-none" title="${label}"><i data-tabler-icon="${ti}" style="width:18px;height:18px"></i><span class="small">${label}</span></a>`;
+		} else {
+			// fallback con svg inline
+			return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="d-inline-flex align-items-center gap-1 px-2 py-1 me-1 mb-1 rounded border text-decoration-none" title="${label}">${obtenerIconoPorTipo(tipo)}<span class="small ms-1">${label}</span></a>`;
+		}
+	});
 
-  if (extra > 0) parts.push(`<span class="badge bg-light text-muted">+${extra}</span>`);
+	if (extra > 0) parts.push(`<span class="badge bg-light text-muted">+${extra}</span>`);
 
-  return parts.join('');
+	return parts.join('');
 }
 

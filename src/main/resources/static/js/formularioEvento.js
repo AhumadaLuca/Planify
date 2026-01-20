@@ -1,9 +1,10 @@
 
 import { cargarEventos } from './eventos.js';
-import { verEventosOrganizador } from './eventos.js';
+import { verEventosOrganizador, eventosCache } from './eventos.js';
 import { mostrarToast } from './toastsGenerico.js';
 import { mostrarModalConfirmacion } from "./confirmarGenerico.js";
 import { limpiarFormularioGenerico } from "./limpiezaFormGenerico.js";
+import { detectarRedSocialPorTipo, normalizarUrl, obtenerIconoPorTipo, validarUrl } from "./redesSociales.js";
 
 export function initFormularioEvento() {
 
@@ -58,61 +59,6 @@ export function initFormularioEvento() {
 		error.classList.add("d-none");
 	}
 
-	// ------------------ Helpers y UI Redes Sociales ------------------
-	function obtenerIconoPorTipo(type) {
-	// retorna un string con SVG (icons minimalistas)
-	switch (type) {
-		case 'FACEBOOK': return `<i class="ti ti-brand-facebook fs-3"></i>`;
-		case 'INSTAGRAM': return `<i class="ti ti-brand-instagram fs-3"></i>`;
-		case 'YOUTUBE': return `<i class="ti ti-brand-youtube fs-3"></i>`;
-		case 'TWITTER': return `<i class="ti ti-brand-x fs-3"></i>`;
-		case 'TIKTOK': return `<i class="ti ti-brand-facebook fs-3"></i>`;
-		case 'WHATSAPP': return `<i class="ti ti-brand-tiktok fs-3"></i>`;
-		default:
-			return `<i class="ti ti-link"></i>`;
-	}
-}
-	
-	function detectarRedSocialPorTipo(url) {
-		if (!url) return 'OTHER';
-		try {
-			// aseguramos esquema para parsing
-			const u = new URL(url.startsWith('http') ? url : 'https://' + url);
-			const host = u.hostname.toLowerCase();
-			if (host.includes('facebook.com')) return 'FACEBOOK';
-			if (host.includes('instagram.com')) return 'INSTAGRAM';
-			if (host.includes('youtube.com') || host.includes('youtu.be')) return 'YOUTUBE';
-			if (host.includes('twitter.com') || host.includes('x.com')) return 'TWITTER';
-			if (host.includes('tiktok.com')) return 'TIKTOK';
-			if (host.includes('wa.me') || host.includes('whatsapp.com')) return 'WHATSAPP';
-			// si es dominio genérico con www o sin subdominio
-			if (host.match(/\.[a-z]{2,}$/)) return 'WEBSITE';
-		} catch (e) {
-			return 'OTHER';
-		}
-		return 'OTHER';
-	}
-
-
-	// Normalizar: si no tiene esquema, le agregamos https://
-	function normalizarUrl(url) {
-		if (!url) return url;
-		if (!/^https?:\/\//i.test(url)) {
-			return 'https://' + url;
-		}
-		return url;
-	}
-
-	function validarUrl(url) {
-		if (!url) return false;
-		try {
-			new URL(normalizarUrl(url));
-			return true;
-		} catch (e) {
-			return false;
-		}
-	}
-
 	function preloadRedes(redesArray) {
 		// redesArray: [{ id?, url, tipo? }, ...] o list of strings
 		if (!redesWrapper) return;
@@ -145,7 +91,7 @@ export function initFormularioEvento() {
 		iconBox.className = 'red-icon d-inline-flex align-items-center justify-content-center';
 		iconBox.style.width = '36px';
 		iconBox.style.height = '36px';
-		// icono de placeholder (puedes usar Tabler aquí)
+
 		iconBox.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1010 10A10 10 0 0012 2zm1 14h-2v-2h2zm0-4h-2V6h2z"/></svg>`;
 
 		const input = document.createElement('input');
@@ -172,8 +118,6 @@ export function initFormularioEvento() {
 				const tipo = detectarRedSocialPorTipo(v);
 				iconBox.innerHTML = obtenerIconoPorTipo(tipo);
 				iconBox.title = tipo;
-				// Si querés usar Tabler, aquí podés crear <i data-tabler-icon="brand-instagram">...
-				// Ejemplo simple: dejar title y no cambiar el SVG por ahora.
 			}, 220);
 		});
 
@@ -337,7 +281,7 @@ export function initFormularioEvento() {
 				return;
 			}
 
-			
+
 			// Armar objeto evento plano
 			const evento = {
 				titulo,
@@ -399,9 +343,13 @@ export function initFormularioEvento() {
 
 				if (modalLabel) modalLabel.textContent = "Nuevo Evento";
 				if (btnGuardar) btnGuardar.textContent = "Crear Evento";
-				//Refrescamos mapa
+
+				// Invalidar cache
+				eventosCache.length = 0;
+
+				// Forzar recarga
 				if (window.mapInstance) {
-					cargarEventos(window.mapInstance);
+					cargarEventos(window.mapInstance, { force: true });
 				}
 			}
 		} catch (err) {
@@ -435,7 +383,7 @@ export function initFormularioEvento() {
 				throw new Error("No se pudo obtener el evento");
 			}
 			const evento = await response.json();
-			
+
 			preloadRedes(evento.redesSociales || []);
 
 			console.log(evento);
@@ -521,9 +469,12 @@ export function initFormularioEvento() {
 
 						mostrarToast("✅ Evento eliminado correctamente", "success");
 
-						// Refrescar mapa
+						// Invalidar cache
+						eventosCache.length = 0;
+
+						// Forzar recarga
 						if (window.mapInstance) {
-							cargarEventos(window.mapInstance);
+							cargarEventos(window.mapInstance, { force: true });
 						}
 
 						// Recargar lista de eventos del organizador

@@ -9,36 +9,39 @@ import { decodeJwt } from './issuerDecode.js';
 import { initPasswordToggles } from './passwordToggle.js';
 import { initVerOrganizador } from './organizador.js';
 import "./filtros.js";
+import "./buscadorUI.js";
+import { initBuscadorEventos } from './buscador.js';
 
 export async function iniciarApp() {
-	
+
 	let issuerBackend = null;
-    try {
-        const res = await fetch("/issuer/validar");
-        issuerBackend = await res.text();
-    } catch (e) {
-        console.warn("No se pudo obtener el issuer del servidor");
-    }
+	try {
+		const res = await fetch("/issuer/validar");
+		issuerBackend = await res.text();
+	} catch (e) {
+		console.warn("No se pudo obtener el issuer del servidor");
+	}
 
-    if (issuerBackend) {
-        const token = localStorage.getItem("token");
+	if (issuerBackend) {
+		const token = localStorage.getItem("token");
 
-        if (token) {
-            const payload = decodeJwt(token);
-            const issuerToken = payload?.iss;
+		if (token) {
+			const payload = decodeJwt(token);
+			const issuerToken = payload?.iss;
 
-            // 2. Si el issuer guardado es diferente → token inválido → limpiar
-            if (issuerToken !== issuerBackend) {
-                localStorage.removeItem("token");
-                localStorage.removeItem("rol");
-                localStorage.removeItem("nombre");
-            }
-        }
-    }
-	
+			// 2. Si el issuer guardado es diferente → token inválido → limpiar
+			if (issuerToken !== issuerBackend) {
+				localStorage.removeItem("token");
+				localStorage.removeItem("rol");
+				localStorage.removeItem("nombre");
+			}
+		}
+	}
+
 	const map = initMapa();
 	window.mapInstance = map;
 	cargarEventos(map); // Solo los públicos, esto sí se puede cargar al inicio
+	initBuscadorEventos();
 	initPasswordToggles();
 	initFormularioEvento();
 	actualizarMenuUsuario();
@@ -68,4 +71,10 @@ export async function iniciarApp() {
 			await verDetalles(id, true);
 		}
 	});
+	
+	setInterval(() => {
+		if (window.mapInstance) {
+			cargarEventos(window.mapInstance);
+		}
+	}, 60_000);
 }

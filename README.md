@@ -29,16 +29,15 @@ Una aplicación web que permite visualizar eventos en un mapa interactivo, admin
 - CRUD completo (Crear, Leer, Actualizar, Eliminar)
 - Validación de fechas de inicio/fin
 - Gestión de precios (eventos gratuitos o pagos)
-- OpenCage Data API (para búsqueda de direcciones y obtención de coordenadas).
+- OpenCage Data API (búsqueda de direcciones y obtención de coordenadas)
 - Modal de detalle para ver información extendida
-- Opción de requerir verificación de edad
-- Soporte para enlaces externos (venta de tickets, redes, etc.)
+- Sistema de redes sociales por evento con soporte para múltiples enlaces y tipos de red
+- **Buscador de eventos** por título y ubicación con filtrado en tiempo real
+- **Panel lateral de resultados** sincronizado con el mapa
 - **Filtrado avanzado (v0.4.1)**:
-  - Filtrado por **categorías** (Música, Deporte, Teatro).
-  - Filtrado por **precio máximo**.
-  - Filtrado por **rango de fechas** (Fecha desde / Fecha hasta).
-  - Botón **"Quitar filtros"** en el sidebar para restaurar la vista completa.
-  - Filtrado realizado en frontend sobre un **cache local** (`eventosCache`) para respuestas rápidas sin recargar el backend.
+  - Por categorías, precio máximo y rango de fechas
+  - Botón *“Quitar filtros”* para restaurar la vista
+  - Filtrado en frontend usando caché local (`eventosCache`)
 
 ### 👤 **Organizadores**
 - Registro y Login mediante JWT
@@ -66,11 +65,12 @@ Una aplicación web que permite visualizar eventos en un mapa interactivo, admin
 - `EventoDTO` (Request/Response)
 - `EventoAdminDTO`
 - `OrganizadorAdminDTO`
+- `RedSocialLinkDTO`
 
 ### Backend
 - Controladores para organizadores, eventos y administrador.
 - Servicios con lógica de negocio separada.
-- Repositories para `Evento`, `Organizador` y `Categoria`.
+- Repositories para `Evento`, `Organizador` y `Categoria` y `RedSocialLink`.
 - Filtros y configuración JWT.
 - Endpoints destacados:
   - `GET /api/eventos` — listar eventos públicos.
@@ -89,6 +89,13 @@ Una aplicación web que permite visualizar eventos en un mapa interactivo, admin
 ---
 
 ## 📘 Registro de versiones (resumen)
+
+- **v0.7.0 — 2026-01-20**
+  - Añadido: Sistema de redes sociales por evento con soporte para múltiples enlaces y tipos de red.
+  - Mejorado: Formulario de eventos con gestión dinámica, validación y carga de redes sociales en edición.
+  - Mejorado: Visualización de redes sociales en el detalle de evento, mapa y panel del organizador.
+  - Añadido: Buscador de eventos activo con filtrado en tiempo real y panel lateral de resultados.
+  - Mejorado: Optimización del sistema de caché de eventos y refactorización de la lógica frontend asociada.
 
 - **v0.6.0 — 2026-01-13**
   - Añadido: Sistema de **redes sociales por evento**, permitiendo asociar múltiples enlaces a cada evento mediante una entidad dedicada en el backend.
@@ -123,24 +130,7 @@ Una aplicación web que permite visualizar eventos en un mapa interactivo, admin
   - Protótipo inicial, configuración base de backend, estructura inicial de frontend, vista preliminar.
 
 ---
-
-## ▶️ Estado actual del proyecto
-✔ En desarrollo activo  
-✔ API funcional  
-✔ CRUD completo de entidades principales  
-✔ Autenticación y roles implementados  
-⚠ Pendiente: refinado del flujo de validación por parte del admin  
-⚠ Pendiente: revisar y optimizar el comportamiento responsive en dispositivos móviles y tablets.
-
----
-
-## 📌 Futuras mejoras
-- Buscador por nombre y filtros avanzados con autocompletado.
-- Filtro por distancia (eventos cercanos a mi ubicación).
-- Dashboard de estadísticas
-- Mejoras en UI del panel administrador
-- Tests unitarios y de integración
-
+> Para el detalle completo de cambios por versión, consultar el archivo CHANGELOG.md.
 ---
 
 ## 📄 Licencia

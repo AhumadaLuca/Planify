@@ -3,6 +3,35 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 
 ---
 
+## [v0.7.0] - 2026-01-20
+
+### Añadido / Mejorado
+- Implementación de un sistema estructurado de redes sociales por evento, reemplazando el uso de un enlace genérico.
+- Creación de una entidad independiente de redes sociales en el backend, permitiendo asociar múltiples enlaces a un evento y clasificarlos mediante un enumerador (Facebook, Instagram, YouTube, Twitter/X, TikTok, WhatsApp, sitio web u otros).
+- Integración completa de la gestión de redes sociales en el formulario de creación y edición de eventos:
+  - Alta y eliminación dinámica de enlaces.
+  - Validación y normalización automática de URLs.
+  - Detección del tipo de red social según el dominio.
+  - Carga correcta de redes previamente guardadas en modo edición.
+- Visualización de redes sociales en las distintas vistas del sistema:
+  - Modal de detalle de evento.
+  - Mapa interactivo.
+  - Panel del organizador.
+- Refactorización de la lógica de manejo de redes sociales en el frontend, centralizando el comportamiento en el módulo `redesSociales.js` para mejorar mantenibilidad y escalabilidad.
+- Mejora del sistema de caché de eventos (`eventosCache`), que ahora se actualiza automáticamente al crear, editar o eliminar eventos, realiza verificaciones periódicas y evita peticiones innecesarias al backend.
+- Implementación completa del buscador de eventos, permitiendo buscar por título y ubicación, filtrar resultados en tiempo real usando el caché y actualizar dinámicamente los marcadores del mapa.
+- Incorporación de un panel lateral de resultados de búsqueda con:
+  - Listado compacto de eventos.
+  - Posibilidad de abrir y cerrar el panel.
+  - Transiciones suaves y animación contextual al iniciar la búsqueda.
+  - Enfoque automático del evento seleccionado en el mapa.
+- Optimización de la experiencia de búsqueda para evitar animaciones innecesarias, restablecer correctamente el estado al limpiar el input y mantener una interacción fluida y predecible.
+
+### Corregido
+- Corrección de un error de serialización al cargar eventos con redes sociales asociadas, causado por una relación bidireccional sin control entre entidades, evitando ciclos infinitos y respuestas JSON inválidas.
+
+---
+
 ## [v0.6.0] - 2026-01-13
 
 ### Añadido

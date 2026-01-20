@@ -183,8 +183,13 @@ document.addEventListener("click", async (e) => {
 					if (response.ok) {
 						mostrarToast(estado ? "☑️ Evento invalidado correctamente" : "☑️ Evento validado correctamente", "success");
 
-						// Actualizar mapa si existe
-						if (window.mapInstance) cargarEventos(window.mapInstance);
+						// Invalidar cache
+						eventosCache.length = 0;
+
+						// Forzar recarga
+						if (window.mapInstance) {
+							cargarEventos(window.mapInstance, { force: true });
+						}
 
 						new bootstrap.Modal(document.getElementById("adminPanelModal")).show();
 					} else {
@@ -242,6 +247,14 @@ document.addEventListener("click", async (e) => {
 				panelModal.hide();
 			}
 
+			// Invalidar cache
+			eventosCache.length = 0;
+
+			// Forzar recarga
+			if (window.mapInstance) {
+				cargarEventos(window.mapInstance, { force: true });
+			}
+
 			document.getElementById("modalDetalleGenerico").querySelector(".btn-volver-admin").addEventListener("click", () => {
 				const detalleModal = bootstrap.Modal.getInstance(document.getElementById("modalDetalleGenerico"));
 				if (detalleModal) detalleModal.hide();
@@ -274,7 +287,16 @@ document.addEventListener("click", async (e) => {
 
 					if (!response.ok) throw new Error("No se pudo verificar el organizador");
 
+					// Invalidar cache
+					eventosCache.length = 0;
+
+					// Forzar recarga
+					if (window.mapInstance) {
+						cargarEventos(window.mapInstance, { force: true });
+					}
+
 					mostrarToast(estado ? "☑️ Verificación removida correctamente" : "☑️ Organizador verificado correctamente", "success");
+
 					new bootstrap.Modal(document.getElementById("adminPanelModal")).show();
 				} catch {
 					mostrarToast(estado ? "Error removiendo verificación" : "Error verificando organizador", "danger");
@@ -307,6 +329,14 @@ document.addEventListener("click", async (e) => {
 					if (modalAbierto) {
 						const instancia = bootstrap.Modal.getInstance(modalAbierto);
 						instancia?.hide();
+					}
+
+					// Invalidar cache
+					eventosCache.length = 0;
+
+					// Forzar recarga
+					if (window.mapInstance) {
+						cargarEventos(window.mapInstance, { force: true });
 					}
 
 					new bootstrap.Modal(document.getElementById("adminPanelModal")).show();
