@@ -1,5 +1,7 @@
 package com.eventos.eventos_app.dto;
 
+import com.eventos.eventos_app.models.EstadoEvento;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,6 +17,6 @@ public class EventosAdminDTO {
 	private String categoria; 
 	private String fechaInicio; 
 	private String fechaFin; 
-	private boolean validado;
+	private EstadoEvento estado;
 
 }

@@ -1,6 +1,7 @@
 # ✨ PLANIFY — Aplicación de Eventos Interactivos
+### v1.0.0 · Versión estable
 
-Una aplicación web que permite visualizar eventos en un mapa interactivo, administrar organizadores y eventos mediante un sistema con CRUD completo, autenticación mediante JWT y un panel de administración para moderación.
+Una aplicación web estable que permite visualizar eventos en un mapa interactivo, administrar organizadores y eventos mediante un sistema con CRUD completo, autenticación mediante JWT y un panel de administración para moderación.
 
 ---
 
@@ -28,13 +29,19 @@ Una aplicación web que permite visualizar eventos en un mapa interactivo, admin
 - Visualización de eventos en un mapa dinámico (Leaflet.js)
 - CRUD completo (Crear, Leer, Actualizar, Eliminar)
 - Validación de fechas de inicio/fin
+- Sistema de estados de evento (PENDIENTE / ACEPTADO / RECHAZADO)
 - Gestión de precios (eventos gratuitos o pagos)
 - OpenCage Data API (búsqueda de direcciones y obtención de coordenadas)
 - Modal de detalle para ver información extendida
 - Sistema de redes sociales por evento con soporte para múltiples enlaces y tipos de red
 - **Buscador de eventos** por título y ubicación con filtrado en tiempo real
 - **Panel lateral de resultados** sincronizado con el mapa
-- **Filtrado avanzado (v0.4.1)**:
+- Sistema de verificación de edad no invasivo para eventos con restricción (+18):
+  - Modal inicial al ingresar a la aplicación.
+  - Persistencia de la decisión del usuario.
+  - Ocultamiento automático de eventos no aptos según la edad.
+  - Integración completa con mapa, buscador y filtros
+- Filtrado avanzado:
   - Por categorías, precio máximo y rango de fechas
   - Botón *“Quitar filtros”* para restaurar la vista
   - Filtrado en frontend usando caché local (`eventosCache`)
@@ -51,7 +58,8 @@ Una aplicación web que permite visualizar eventos en un mapa interactivo, admin
 - Panel de administración (UI) con:
   - Lista de organizadores y sus eventos.
   - Verificar / desverificar organizadores.
-  - Validar / invalidar eventos.
+  - Moderación de eventos mediante estados (PENDIENTE / ACEPTADO / RECHAZADO).
+  - Flujo completo de moderación administrativa con estados de evento.
   - Eliminar organizadores (eliminación en cascada de sus eventos).
 - Modal genérico para confirmar acciones y modal genérico para detalles.
 
@@ -89,6 +97,14 @@ Una aplicación web que permite visualizar eventos en un mapa interactivo, admin
 ---
 
 ## 📘 Registro de versiones (resumen)
+
+- **v1.0.0 — 2026-01-28**
+  - Lanzamiento de la primera versión estable del sistema.
+  - Implementación del sistema de estados de evento (PENDIENTE / ACEPTADO / RECHAZADO).
+  - Nuevo flujo de moderación administrativa con endpoint unificado.
+  - Incorporación de verificación de edad no invasiva para eventos con restricción (+18).
+  - Integración completa de la verificación de edad en mapa, buscador y filtros.
+  - Correcciones de sincronización de caché y recarga de vistas.
 
 - **v0.7.0 — 2026-01-20**
   - Añadido: Sistema de redes sociales por evento con soporte para múltiples enlaces y tipos de red.

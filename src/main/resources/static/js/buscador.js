@@ -1,5 +1,13 @@
 import { formatearFecha } from "./utils.js";
 import { dibujarEventosEnMapa, enfocarEventoEnMapa, eventosCache, obtenerIconoCategoria } from './eventos.js';
+import { hasEdad } from './verificacionEdad.js';
+
+function filtrarEventosVisibles(eventos) {
+  return eventos.filter(e => {
+    if (!e.requiereVerificarEdad) return true;
+    return hasEdad();
+  });
+}
 
 export function initBuscadorEventos() {
 	const input = document.getElementById("pac-input");
@@ -21,8 +29,10 @@ export function initBuscadorEventos() {
 				searchWasEmpty = true; // 👈 reset cuando vuelve a vacío
 				return;
 			}
+			
+			const eventosVisibles = filtrarEventosVisibles(eventosCache);
 
-			const resultados = eventosCache.filter(e =>
+			const resultados = eventosVisibles.filter(e =>
 				e.titulo?.toLowerCase().includes(q) ||
 				e.ubicacion?.toLowerCase().includes(q)
 			);
@@ -45,7 +55,6 @@ export function initBuscadorEventos() {
 			const li = document.createElement("li");
 			li.innerHTML = `
         <h6 style="margin:0; font-weight:600; font-size:16px;">${ev.titulo}</h6>
-        <p style="margin:0; margin-top:5px;">Validado: ${ev.validado ? '☑️' : '❌'}</p>
         <p style="margin:0; margin-top:5px;"> ${ev.ubicacion || ''}</p>
         <p style="margin:5px;" font-size:12px;>
           <b>${obtenerIconoCategoria(ev.categoria.nombre)}</b> ${ev.categoria.nombre}

@@ -480,6 +480,8 @@ export function initFormularioEvento() {
 						// Recargar lista de eventos del organizador
 						if (typeof verEventosOrganizador === "function") {
 							verEventosOrganizador();
+						}else{
+							new bootstrap.Modal(document.getElementById("adminPanelModal")).show();
 						}
 
 					} catch (error) {

@@ -3,6 +3,8 @@ package com.eventos.eventos_app.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.eventos.eventos_app.models.EstadoEvento;
+
 import lombok.Data;
 
 @Data
@@ -23,7 +25,7 @@ public class EventoResponseDTO {
     public String categoriaNombre; 
     public String imagenUrl;
     public LocalDateTime fechaCreacion;
-    public Boolean validado;
+    public EstadoEvento estado;
 
     // Mini info del organizador
     public Long organizadorId;

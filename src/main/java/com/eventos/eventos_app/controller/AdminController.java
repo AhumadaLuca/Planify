@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.eventos.eventos_app.dto.OrganizadorAdminDTO;
+import com.eventos.eventos_app.models.EstadoEvento;
 import com.eventos.eventos_app.services.AdminServicio;
 
 @RestController
@@ -31,12 +33,15 @@ public class AdminController {
 	}
 
 	// Validar evento
-	@PutMapping("/eventos/validar/{id}")
+	@PutMapping("/eventos/cambiarEstado/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> validarEvento(@PathVariable Long id) {
+	public ResponseEntity<?> cambiarEstadoEvento(@PathVariable Long id, @RequestParam("estado") String estado) {
 		try {
-			adminServicio.validarEvento(id);
-			return ResponseEntity.ok("Evento validado correctamente");
+			
+			EstadoEvento estadoEvento = EstadoEvento.valueOf(estado);
+			
+			adminServicio.cambiarEstadoEvento(id, estadoEvento);
+			return ResponseEntity.ok("Cambio de estado correctamente");
 		} catch (RuntimeException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
 		}

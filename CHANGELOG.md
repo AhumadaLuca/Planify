@@ -3,6 +3,35 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 
 ---
 
+## [v1.0.0] - 2026-01-28
+
+### Añadido / Mejorado
+- Implementación de un sistema de estados de evento basado en un enum (`PENDIENTE`, `ACEPTADO`, `RECHAZADO`), reemplazando la validación booleana anterior.
+- Nuevo flujo de moderación de eventos que formaliza el proceso de revisión administrativa y sienta las bases para futuras mejoras como el motivo de rechazo.
+- Creación de un endpoint administrativo unificado para el cambio de estado de eventos, centralizando la lógica backend–frontend.
+- Actualización completa de la interfaz del panel de administración y del organizador:
+  - Visualización clara del estado real de cada evento.
+  - Reemplazo de la lógica “validar / invalidar” por acciones explícitas de aceptar o rechazar.
+  - Ajustes de textos, colores y botones para una mejor interpretación de las acciones disponibles.
+- Implementación de un sistema de verificación de edad simple y no invasivo al iniciar la aplicación:
+  - Modal inicial para confirmar si el usuario es mayor o menor de edad.
+  - Persistencia de la decisión en `localStorage`.
+  - Control de visualización de eventos con restricción etaria (+18) sin requerir autenticación de usuarios consumidores.
+- Integración completa de la verificación de edad en todo el sistema:
+  - Mapa interactivo.
+  - Buscador de eventos.
+  - Filtros aplicados sobre el caché de eventos.
+- Incorporación de la opción explícita “Soy menor” en el modal de verificación de edad, permitiendo continuar la navegación con restricciones automáticas.
+- Mejoras generales en la experiencia de usuario durante la moderación de eventos y la navegación del sistema.
+
+### Corregido
+- Corrección de la estructura de la base de datos para alinearla con el nuevo modelo de estados de evento, resolviendo errores de integridad y truncamiento de datos.
+- Solución de problemas de sincronización visual al aceptar o rechazar eventos, asegurando la correcta invalidación de `eventosCache` y la recarga de paneles y mapa.
+- Corrección de un error en la lógica de verificación de edad que ocultaba incorrectamente eventos +18 incluso después de confirmar mayoría de edad.
+- Ajuste del comportamiento del buscador y filtros para evitar que los eventos con restricción etaria aparezcan en resultados cuando el usuario no cumple la validación.
+
+---
+
 ## [v0.7.0] - 2026-01-20
 
 ### Añadido / Mejorado

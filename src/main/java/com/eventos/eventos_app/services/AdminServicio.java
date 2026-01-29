@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.eventos.eventos_app.dto.EventosAdminDTO;
 import com.eventos.eventos_app.dto.OrganizadorAdminDTO;
+import com.eventos.eventos_app.models.EstadoEvento;
 import com.eventos.eventos_app.models.Evento;
 import com.eventos.eventos_app.models.Organizador;
 import com.eventos.eventos_app.repository.EventoRepository;
@@ -38,7 +39,7 @@ public class AdminServicio {
              e.getCategoria() != null ? e.getCategoria().getNombre() : null,
              e.getFechaInicio() != null ? e.getFechaInicio().toString() : null,
              e.getFechaFin() != null ? e.getFechaFin().toString() : null,
-             e.getValidado()
+             e.getEstado()
          )
      ).toList();
     	 
@@ -53,15 +54,13 @@ public class AdminServicio {
     	
     }
     
-    public void validarEvento(Long idEvento) {
+    public void cambiarEstadoEvento(Long idEvento, EstadoEvento estadoEvento) {
+    	
         Evento evento = eventoRepository.findById(idEvento)
             .orElseThrow(() -> new RuntimeException("Evento no encontrado"));
 
-        if(evento.getValidado()){
-        	evento.setValidado(false);
-        }else {
-        	evento.setValidado(true);
-        }
+        evento.setEstado(estadoEvento);
+        
         eventoRepository.save(evento);
     }
     

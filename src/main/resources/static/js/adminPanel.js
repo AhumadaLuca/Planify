@@ -1,8 +1,9 @@
 
-import { cargarEventos } from './eventos.js';
+import { cargarEventos, eventosCache } from './eventos.js';
 import { mostrarToast } from './toastsGenerico.js';
 import { mostrarModalConfirmacion } from "./confirmarGenerico.js";
 import { abrirModalDetalle } from "./modalDetallesGenerico.js";
+import { renderEstadoEvento, renderEstadoEventoAdmin } from "./renderEstadoEvento.js";
 
 export async function initAdminPanel() {
 	const tbody = document.getElementById("eventosAdminBody");
@@ -60,10 +61,16 @@ export async function initAdminPanel() {
                         </div>
 
                         <div>
-                            <button class="btn btn-sm btn-warning btn-ver-organizador"
+                        
+                        ${org.verificadoOrganizador
+                         ? `<button class="btn btn-sm btn-warning btn-ver-organizador"
                                 data-organizador-id="${orgId}">
-                                ${org.verificadoOrganizador ? 'Revocar Verificar' : 'Verificar'}
-                            </button>
+                                Revocar Verificar
+                            </button>`
+                        :`<button class="btn btn-sm btn-success btn-ver-organizador"
+                                data-organizador-id="${orgId}">
+                                Verificar
+                            </button>`}
 
                             <button class="btn btn-sm btn-danger btn-eliminar-organizador"
                                 data-organizador-id="${orgId}">
@@ -98,7 +105,7 @@ export async function initAdminPanel() {
                                         <th>Título</th>
                                         <th>Categoría</th>
                                         <th>Fechas</th>
-                                        <th>Validado</th>
+                                        <th>Estado</th>
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
@@ -118,18 +125,13 @@ export async function initAdminPanel() {
                                                 <td>${fi}<br><small class="text-muted">${ff}</small></td>
 
                                                 <td>
-                                                    ${ev.validado
-						? '<span class="badge bg-success">Sí</span>'
-						: '<span class="badge bg-warning text-dark">No</span>'}
+                                                   ${renderEstadoEvento(ev.estado)}
                                                 </td>
 
                                                 <td>
-                                                    <button class="btn btn-sm btn-primary btn-validar-evento"
-                                                        data-id="${ev.id}" data-estado="${ev.validado}">
-                                                        ${ev.validado ? 'Invalidar' : 'Validar'}
-                                                    </button>
+                                                    ${renderEstadoEventoAdmin(ev)}
 
-                                                    <button class="btn btn-sm btn-warning btn-editar-evento"
+                                                    <button class="btn btn-sm btn-primary btn-editar-evento"
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#nuevoEventoModal"
                                                         data-id="${ev.id}">
@@ -161,27 +163,28 @@ export async function initAdminPanel() {
 }
 
 document.addEventListener("click", async (e) => {
-	// Actualizar Validacion evento
-	if (e.target.matches(".btn-confirmar-validar-evento")) {
+	// Actualizar Validacion evento (ACEPTADO o RECHAZADO)
+	if (e.target.matches(".btn-cambiar-estado-evento")) {
 		const id = e.target.dataset.id;
-		const estado = e.target.dataset.estado === "true";
-		console.log(estado);
-		if (!id) return;
+		const estado = e.target.dataset.estado;
+		if (!id || !estado) return;
+		
+		const esAceptado = estado === "ACEPTADO";
 
 		mostrarModalConfirmacion({
-			titulo: estado ? "Invalidar evento" : "Validar evento",
-			mensaje: estado ? `¿Deseas invalidar el evento #${id}?` : `¿Confirmas la validación del evento #${id}?`,
-			tipo: estado ? "warning" : "success",
-			textoBoton: estado ? "Invalidar" : "Validar",
+			titulo: esAceptado ? "Aceptar evento" : "Rechazar evento",
+			mensaje: esAceptado ? `¿Confirmás la aceptación del evento #${id}?` : `¿Confirmás el rechazo del evento #${id}?`,
+			tipo: esAceptado ? "success" : "warning",
+			textoBoton: esAceptado ? "Aceptar" : "Rechazar",
 			onConfirm: async () => {
 				try {
-					const response = await fetch(`http://localhost:8080/api/admin/eventos/validar/${id}`, {
+					const response = await fetch(`http://localhost:8080/api/admin/eventos/cambiarEstado/${id}?estado=${estado}`, {
 						method: "PUT",
 						headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
 					});
 
 					if (response.ok) {
-						mostrarToast(estado ? "☑️ Evento invalidado correctamente" : "☑️ Evento validado correctamente", "success");
+						mostrarToast(esAceptado ? "☑️ Evento aceptado correctamente" : "❌ Evento rechazado correctamente", "success");
 
 						// Invalidar cache
 						eventosCache.length = 0;
@@ -193,10 +196,10 @@ document.addEventListener("click", async (e) => {
 
 						new bootstrap.Modal(document.getElementById("adminPanelModal")).show();
 					} else {
-						mostrarToast(estado ? "❌ No se pudo invalidar el evento" : "❌ No se pudo validar el evento", "danger");
+						mostrarToast(esAceptado ? "❌ No se pudo aceptar el evento" : "❌ No se pudo rechazar el evento", "danger");
 					}
 				} catch (err) {
-					mostrarToast(estado ? "Error al invalidar el evento: " + err : "Error al validar el evento: " + err, "danger");
+					mostrarToast(esAceptado ? "Error al aceptar el evento: " + err : "Error al rechazar el evento: " + err, "danger");
 				}
 			}
 		});

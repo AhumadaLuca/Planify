@@ -2,6 +2,8 @@
 import { formatearFecha } from "./utils.js";
 import { abrirModalDetalle } from "./modalDetallesGenerico.js";
 import { detectarRedSocialPorTipo, normalizarUrl, obtenerIconoPorTipo } from "./redesSociales.js";
+import { renderEstadoEvento } from "./renderEstadoEvento.js";
+import { hasEdad } from './verificacionEdad.js';
 
 // Cache en memoria (se carga una sola vez por sesión)
 export let eventosCache = [];
@@ -45,7 +47,10 @@ export function dibujarEventosEnMapa(eventos) {
 		window.eventMarkersLayer.clearLayers();
 	}
 
-	console.log(eventos);
+	const eventosVisibles = eventos.filter(e => {
+    if (!e.requiereVerificarEdad) return true;
+    return hasEdad();
+  });
 
 	// limpiar markers anteriores
 	markersByEventId.forEach(marker => {
@@ -53,7 +58,7 @@ export function dibujarEventosEnMapa(eventos) {
 	});
 	markersByEventId.clear();
 
-	eventos.forEach(evento => {
+	eventosVisibles.forEach(evento => {
 
 		// Crear un div real
 		const popupDiv = document.createElement('div');
@@ -86,7 +91,6 @@ export function dibujarEventosEnMapa(eventos) {
           <p style="margin:5px;" font-size:12px;>
           <b>${obtenerIconoCategoria(evento.categoria.nombre)}</b> ${evento.categoria.nombre}
           </p>
-          <p style="margin:0; margin-top:5px;"><b>Validado:</b> ${evento.validado ? '☑️' : '❌'}</p>
         </div>
       `;
 
@@ -143,6 +147,11 @@ export function filtrarEventos({ categorias, precioMax, fechaDesde, fechaHasta }
 	let filtrados = [...eventosCache];
 
 	console.log("Sin filtrar: ", filtrados);
+	
+	filtrados = filtrados.filter(e => {
+    if (!e.requiereVerificarEdad) return true;
+    return hasEdad();
+  });
 
 	// Categorías
 	if (Array.isArray(categorias) && categorias.length > 0) {
@@ -191,7 +200,6 @@ export async function verDetalles(eventoId, modoAdmin = false) {
 
       <div class="mb-2 d-flex flex-wrap gap-2">
         <span class="badge bg-secondary">${evento.categoriaNombre || 'Sin categoría'}</span>
-        ${evento.validado ? '<span class="badge bg-success">Validado</span>' : '<span class="badge bg-danger">No validado</span>'}
       </div>
 
       <p class="card-text mb-3">${evento.descripcion || ''}</p>
@@ -221,11 +229,6 @@ export async function verDetalles(eventoId, modoAdmin = false) {
           <i class="ti ti-user evento-icon me-2" aria-hidden="true"></i>
           <div><strong>Organizador:</strong><br>${evento.nombreOrganizador || 'Desconocido'}</div>
         </li>
-
-        <li class="d-flex align-items-center mb-2">
-          <i class="ti ti-progress-help evento-icon me-2" aria-hidden="true"></i>
-          <div><strong>Validado:</strong><br>${evento.validado ? '☑️ Sí' : '❌ No'}</div>
-        </li>
       </ul>
       	<li class="d-flex align-items-center mb-2">
           <div><i class="ti ti-click me-1 fs-3" aria-hidden="true"></i><strong>Redes Sociales:</strong><br><div id="organizador-redes" class="mt-3" style="display: none;"></div>
@@ -245,11 +248,20 @@ export async function verDetalles(eventoId, modoAdmin = false) {
       ${modoAdmin ? `
         <div class="text-center mt-2">
           <button
-            class="btn ${evento.validado ? 'btn-warning' : 'btn-success'} btn-confirmar-validar-evento"
+            class="btn btn-warning btn-cambiar-estado-evento"
             data-bs-dismiss="modal"
             data-id="${evento.id}"
-            data-estado="${evento.validado}">
-            ${evento.validado ? 'Invalidar Evento' : 'Validar Evento'}
+            data-estado="RECHAZADO">
+            Rechazar evento
+          </button>
+        </div>
+        <div class="text-center mt-2">
+          <button
+            class="btn btn-warning btn-cambiar-estado-evento"
+            data-bs-dismiss="modal"
+            data-id="${evento.id}"
+            data-estado="ACEPTADO">
+            Aceptar evento
           </button>
         </div>
       ` : ''}
@@ -357,7 +369,7 @@ export async function verEventosOrganizador() {
           ${evento.urlVentaExterna ? `<a href="${evento.urlVentaExterna}" target="_blank" rel="noopener noreferrer">Ver enlace</a>` : "No disponible"}
         </td>
         <td>${evento.requiereVerificarEdad ? "Sí" : "No"}</td>
-        <td>${evento.validado ? "Sí" : "No"}</td>
+        <td>${renderEstadoEvento(evento.estado)}</td>
         <td>
       ${redesHtml}
     </td>
@@ -447,4 +459,6 @@ function tablasRedesSociales(redes) {
 
 	return parts.join('');
 }
+
+
 

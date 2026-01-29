@@ -11,8 +11,10 @@ import { initVerOrganizador } from './organizador.js';
 import "./filtros.js";
 import "./buscadorUI.js";
 import { initBuscadorEventos } from './buscador.js';
+import { hasEdad, setEdad, clearEdad } from './verificacionEdad.js';
 
 export async function iniciarApp() {
+	
 
 	let issuerBackend = null;
 	try {
@@ -37,6 +39,34 @@ export async function iniciarApp() {
 			}
 		}
 	}
+	
+	
+	if (!hasEdad()) {
+    const modal = new bootstrap.Modal(
+      document.getElementById("ageGateModal")
+    );
+    modal.show();
+
+    document.getElementById("btn-age-confirm").onclick = () => {
+      setEdad();
+      modal.hide();
+      
+      if (window.mapInstance) {
+       cargarEventos(window.mapInstance, { force: true });
+    }
+    };
+    document.getElementById("btn-age-deny").onclick = () => {
+      modal.hide();
+      
+      if (window.mapInstance) {
+       cargarEventos(window.mapInstance, { force: true });
+    }
+    };
+
+    document.getElementById("btn-age-exit").onclick = () => {
+      window.location.href = "https://www.google.com"; // o página informativa
+    };
+  }
 
 	const map = initMapa();
 	window.mapInstance = map;

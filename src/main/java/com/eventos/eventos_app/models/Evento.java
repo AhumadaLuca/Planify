@@ -59,9 +59,6 @@ public class Evento {
 
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
-    
-    @Column(name = "validado", nullable = false)
-    private Boolean validado = false;
 
     // Relaciones
     @ManyToOne(fetch = FetchType.LAZY)
@@ -75,6 +72,10 @@ public class Evento {
     
     @OneToMany(mappedBy = "evento", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RedSocialLink> redesSociales = new ArrayList<>();
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado", nullable = false)
+    private EstadoEvento estado = EstadoEvento.PENDIENTE;
 
     @PrePersist
     public void prePersist() {
@@ -196,14 +197,8 @@ public class Evento {
 	public LocalDateTime getFechaCreacion() {
 		return fechaCreacion;
 	}
-
-	public Boolean getValidado() {
-		return validado;
-	}
-
-	public void setValidado(Boolean validado) {
-		this.validado = validado;
-	}
+	
+	
 	
 	public List<RedSocialLink> getRedesSociales() { return redesSociales; }
 	public void setRedesSociales(List<RedSocialLink> redesSociales) { this.redesSociales = redesSociales; }

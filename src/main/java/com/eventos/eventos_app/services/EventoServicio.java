@@ -17,6 +17,7 @@ import com.eventos.eventos_app.dto.EventoRequestDTO;
 import com.eventos.eventos_app.dto.EventoResponseDTO;
 import com.eventos.eventos_app.dto.RedSocialLinkDTO;
 import com.eventos.eventos_app.models.Categoria;
+import com.eventos.eventos_app.models.EstadoEvento;
 import com.eventos.eventos_app.models.Evento;
 import com.eventos.eventos_app.models.Organizador;
 import com.eventos.eventos_app.models.Rol;
@@ -38,7 +39,7 @@ public class EventoServicio {
 	public EventoResponseDTO crearEvento(EventoRequestDTO dto, MultipartFile imagen, Organizador org)
 			throws IOException {
 		Evento e = new Evento();
-		e.setValidado(false);
+		e.setEstado(EstadoEvento.PENDIENTE);
 		e.setOrganizador(org);
 
 		mapearDatosEvento(e, dto, imagen); // <-- acá llenás los campos de la entidad
@@ -107,7 +108,7 @@ public class EventoServicio {
 		dto.requiereVerificarEdad = e.getRequiereVerificarEdad();
 		dto.imagenUrl = e.getImagenUrl();
 		dto.fechaCreacion = e.getFechaCreacion();
-		dto.validado = e.getValidado();
+		dto.estado = e.getEstado();
 
 		// Relaciones
 		if (e.getCategoria() != null) {
