@@ -63,34 +63,34 @@
 	<button id="btn-abrir-search" class="search-tab">
 		🔍
 	</button>
-	
+
 	<!-- VERIFICACION DE EDAD -->
 	<div class="modal fade" id="ageGateModal" data-bs-backdrop="static" data-bs-keyboard="false">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Confirmación de edad</h5>
-      </div>
-      <div class="modal-body">
-        <p>
-          Esta aplicación puede mostrar eventos destinados únicamente a mayores de 18 años.
-          ¿Confirmás que sos mayor de edad?
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button id="btn-age-exit" class="btn btn-secondary">
-          Salir
-        </button>
-        <button id="btn-age-deny" class="btn btn-warning">
-          Soy MENOR de 18
-        </button>
-        <button id="btn-age-confirm" class="btn btn-success">
-          Soy MAYOR de 18
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Confirmación de edad</h5>
+				</div>
+				<div class="modal-body">
+					<p>
+						Esta aplicación puede mostrar eventos destinados únicamente a mayores de 18 años.
+						¿Confirmás que sos mayor de edad?
+					</p>
+				</div>
+				<div class="modal-footer">
+					<button id="btn-age-exit" class="btn btn-secondary">
+						Salir
+					</button>
+					<button id="btn-age-deny" class="btn btn-warning">
+						Soy MENOR de 18
+					</button>
+					<button id="btn-age-confirm" class="btn btn-success">
+						Soy MAYOR de 18
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
 
 	<!--  MODAL LOGIN  -->
 	<div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
@@ -267,6 +267,13 @@
 									<option value="1">Música</option>
 									<option value="2">Deporte</option>
 									<option value="3">Teatro</option>
+									<option value="4">Artes & Cultura</option>
+									<option value="5">Gastronomía</option>
+									<option value="6">Festivales & Ferias</option>
+									<option value="7">Educación</option>
+									<option value="8">Familiar</option>
+									<option value="9">Tecnología</option>
+									<option value="10">Bienestar</option>
 								</select>
 								<small class="invalid-feedback d-none" id="errorCategoria"></small>
 							</div>
@@ -274,7 +281,7 @@
 							<div class="col-12">
 								<label class="form-label">Descripción</label>
 								<textarea name="descripcion" id="eventoDescripcion" class="form-control" rows="3"
-									maxlength="300" required></textarea>
+									maxlength="500" required></textarea>
 								<small class="invalid-feedback d-none" id="errorDescripcion"></small>
 							</div>
 
@@ -385,22 +392,65 @@
 						<!-- Categorías -->
 						<div class="mb-3">
 							<label class="form-label">Categorías</label><br>
+
 							<div class="form-check">
 								<input type="checkbox" class="form-check-input filtro-categoria" value="Música"
 									id="catMusica">
-								<label for="catMusica" class="form-check-label">Música</label>
+								<label for="catMusica" class="form-check-label">🎵 Música</label>
 							</div>
 
 							<div class="form-check">
 								<input type="checkbox" class="form-check-input filtro-categoria" value="Deporte"
 									id="catDeporte">
-								<label for="catDeporte" class="form-check-label">Deporte</label>
+								<label for="catDeporte" class="form-check-label">🏅 Deporte</label>
 							</div>
 
 							<div class="form-check">
 								<input type="checkbox" class="form-check-input filtro-categoria" value="Teatro"
 									id="catTeatro">
-								<label for="catTeatro" class="form-check-label">Teatro</label>
+								<label for="catTeatro" class="form-check-label">🎭 Teatro</label>
+							</div>
+
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input filtro-categoria" value="Artes & Cultura"
+									id="catCultura">
+								<label for="catCultura" class="form-check-label">🎨 Artes & Cultura</label>
+							</div>
+
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input filtro-categoria" value="Gastronomía"
+									id="catGastro">
+								<label for="catGastro" class="form-check-label">🍽️ Gastronomía</label>
+							</div>
+
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input filtro-categoria"
+									value="Festivales & Ferias" id="catFerias">
+								<label for="catFerias" class="form-check-label">🎪 Festivales & Ferias</label>
+							</div>
+
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input filtro-categoria" value="Educación"
+									id="catEdu">
+								<label for="catEdu" class="form-check-label">📚 Educación</label>
+							</div>
+
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input filtro-categoria" value="Familiar"
+									id="catFamiliar">
+								<label for="catFamiliar" class="form-check-label">👨‍👩‍👧‍👦 Familiar</label>
+							</div>
+
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input filtro-categoria" value="Tecnología"
+									id="catTech">
+								<label for="catTech" class="form-check-label">💻 Tecnología</label>
+							</div>
+
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input filtro-categoria" value="Bienestar"
+									id="catWellness">
+								<label for="catWellness" class="form-check-label">🧘 Bienestar</label>
 							</div>
 						</div>
 

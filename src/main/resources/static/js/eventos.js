@@ -48,9 +48,9 @@ export function dibujarEventosEnMapa(eventos) {
 	}
 
 	const eventosVisibles = eventos.filter(e => {
-    if (!e.requiereVerificarEdad) return true;
-    return hasEdad();
-  });
+		if (!e.requiereVerificarEdad) return true;
+		return hasEdad();
+	});
 
 	// limpiar markers anteriores
 	markersByEventId.forEach(marker => {
@@ -107,7 +107,12 @@ export function dibujarEventosEnMapa(eventos) {
 		popupDiv.appendChild(btn);
 
 		// Agregar el popup al marker
-		const marker = L.marker([evento.latitud, evento.longitud])
+		const color = colorPorCategoria(evento.categoria.nombre);
+
+		const marker = L.marker(
+			[evento.latitud, evento.longitud],
+			{ icon: crearIconoPin(color) }
+		)
 			.addTo(window.eventMarkersLayer)
 			.bindPopup(popupDiv);
 
@@ -119,9 +124,54 @@ const iconosPorCategoria = {
 	"Música": "🎵",
 	"Deporte": "🏅",
 	"Teatro": "🎭",
-	// Default si la categoría no está definida
+	"Artes & Cultura": "🖼️",
+	"Gastronomía": "🍔",
+	"Festivales & Ferias": "🎉",
+	"Educación": "🎓",
+	"Familiar": "👨‍👩‍👧‍👦",
+	"Tecnología": "🎮",
+	"Bienestar": "🧘",
 	"default": "❓"
 };
+
+function colorPorCategoria(nombre) {
+	const colores = {
+		"Música": "#8e44ad",                // violeta intenso
+		"Deporte": "#27ae60",               // verde deportivo
+		"Teatro": "#e67e22",                // naranja escénico
+		"Artes & Cultura": "#2980b9",       // azul cultural
+		"Gastronomía": "#d35400",           // naranja comida
+		"Festivales & Ferias": "#e74c3c",   // rojo festivo
+		"Educación": "#f1c40f",             // amarillo conocimiento
+		"Familiar": "#16a085",              // verde amigable
+		"Tecnología": "#2c3e50",            // azul oscuro tech
+		"Bienestar": "#9b59b6",             // violeta calmado
+		"default": "#7f8c8d"
+	};
+
+	return colores[nombre] || colores.default;
+}
+
+function crearIconoPin(color) {
+	const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="36" height="54" viewBox="0 0 36 56">
+  <path d="
+    M 18 1 C 9 1 2 6 2 16 c 0 10 16 35 16 35 s 15 -25 15 -35 C 33 6 27 1 18 1 z
+  "
+  fill="${color}"
+  stroke="#ffffff"
+  stroke-width="2"
+  />
+  <circle cx="18" cy="15" r="7" fill="white"/>
+</svg>`;
+
+	return L.icon({
+		iconUrl: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg),
+		iconSize: [36, 54],
+		iconAnchor: [18, 44],
+		popupAnchor: [0, -36]
+	});
+}
 
 export function enfocarEventoEnMapa(evento) {
 	const marker = markersByEventId.get(evento.id);
@@ -147,11 +197,11 @@ export function filtrarEventos({ categorias, precioMax, fechaDesde, fechaHasta }
 	let filtrados = [...eventosCache];
 
 	console.log("Sin filtrar: ", filtrados);
-	
+
 	filtrados = filtrados.filter(e => {
-    if (!e.requiereVerificarEdad) return true;
-    return hasEdad();
-  });
+		if (!e.requiereVerificarEdad) return true;
+		return hasEdad();
+	});
 
 	// Categorías
 	if (Array.isArray(categorias) && categorias.length > 0) {

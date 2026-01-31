@@ -1,5 +1,5 @@
 # ✨ PLANIFY — Aplicación de Eventos Interactivos
-### v1.0.0 · Versión estable
+### v1.1.0 · Versión estable
 
 Una aplicación web estable que permite visualizar eventos en un mapa interactivo, administrar organizadores y eventos mediante un sistema con CRUD completo, autenticación mediante JWT y un panel de administración para moderación.
 
@@ -27,6 +27,10 @@ Una aplicación web estable que permite visualizar eventos en un mapa interactiv
 
 ### 🌍 **Eventos**
 - Visualización de eventos en un mapa dinámico (Leaflet.js)
+- Marcadores personalizados en el mapa según la categoría del evento:
+  - Uso de pines SVG con colores diferenciados por tipo de evento.
+  - Mejora visual que permite identificar rápidamente la naturaleza del evento directamente desde el mapa.
+  - Categorías contempladas: Música, Deporte, Teatro, Artes & Cultura, Gastronomía, Festivales & Ferias, Educación, Familiar, Tecnología y Bienestar.
 - CRUD completo (Crear, Leer, Actualizar, Eliminar)
 - Validación de fechas de inicio/fin
 - Sistema de estados de evento (PENDIENTE / ACEPTADO / RECHAZADO)
@@ -98,13 +102,19 @@ Una aplicación web estable que permite visualizar eventos en un mapa interactiv
 
 ## 📘 Registro de versiones (resumen)
 
+- **v1.1.0 — 2026-01-31**
+  - Añadidas nuevas categorías de eventos para ampliar la cobertura de tipos de actividades.
+  - Implementación de marcadores personalizados en el mapa con colores diferenciados según la categoría del evento.
+  - Mejora de la experiencia visual y de identificación rápida de eventos en el mapa.
+
 - **v1.0.0 — 2026-01-28**
   - Lanzamiento de la primera versión estable del sistema.
-  - Implementación del sistema de estados de evento (PENDIENTE / ACEPTADO / RECHAZADO).
-  - Nuevo flujo de moderación administrativa con endpoint unificado.
-  - Incorporación de verificación de edad no invasiva para eventos con restricción (+18).
-  - Integración completa de la verificación de edad en mapa, buscador y filtros.
-  - Correcciones de sincronización de caché y recarga de vistas.
+  - Implementación del sistema de estados de evento (PENDIENTE / ACEPTADO / RECHAZADO), reemplazando la validación booleana previa.
+  - Nuevo flujo de moderación administrativa con endpoint unificado para aceptar o rechazar eventos.
+  - Actualización de la base de datos para soportar el nuevo modelo de estados de evento.
+  - Incorporación de un sistema de verificación de edad no invasivo para eventos con restricción (+18).
+  - Integración completa de la verificación de edad en mapa, buscador y filtros, garantizando coherencia en toda la aplicación.
+  - Correcciones de sincronización de caché (`eventosCache`) y recarga de vistas tras acciones administrativas.
 
 - **v0.7.0 — 2026-01-20**
   - Añadido: Sistema de redes sociales por evento con soporte para múltiples enlaces y tipos de red.

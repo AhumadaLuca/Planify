@@ -25,7 +25,7 @@ public class Evento {
     @Column(name = "titulo", length = 50, nullable = false)
     private String titulo;
 
-    @Column(name = "descripcion", length = 300, nullable = false)
+    @Column(name = "descripcion", length = 500, nullable = false)
     private String descripcion;
 
     @Column(name = "fecha_inicio", nullable = false)

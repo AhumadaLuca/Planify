@@ -1,5 +1,21 @@
 # Changelog
 Todos los cambios notables de este proyecto se documentan en este archivo.
+---
+
+## [v1.1.0] - 2026-01-31
+
+### Añadido / Mejorado
+- Incorporación de nuevas categorías de eventos para ampliar la cobertura de tipos de actividades disponibles en la plataforma (culturales, gastronómicas, familiares, educativas, tecnológicas, entre otras).
+- Personalización de los marcadores del mapa según la categoría del evento:
+  - Cada categoría se representa con un pin de color distintivo.
+  - Mejora en la identificación visual y diferenciación rápida de eventos en el mapa.
+- Actualización de la iconografía por categoría, manteniendo consistencia entre:
+  - Popups del mapa.
+  - Detalle del evento.
+  - Listados y filtros.
+
+### Mejorado
+- Experiencia de usuario en el mapa interactivo, facilitando la exploración y comprensión del tipo de evento mediante señales visuales claras.
 
 ---
 
