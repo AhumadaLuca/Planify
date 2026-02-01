@@ -1,5 +1,5 @@
 # ✨ PLANIFY — Aplicación de Eventos Interactivos
-### v1.1.0 · Versión estable
+### v1.1.1 · Versión estable
 
 Una aplicación web estable que permite visualizar eventos en un mapa interactivo, administrar organizadores y eventos mediante un sistema con CRUD completo, autenticación mediante JWT y un panel de administración para moderación.
 
@@ -101,6 +101,9 @@ Una aplicación web estable que permite visualizar eventos en un mapa interactiv
 ---
 
 ## 📘 Registro de versiones (resumen)
+
+- **v1.1.1 — 2026-02-01**
+  - Ajustes y reorganizaciones visuales y ampliación en los paneles de organizador y administrador para una mejor distribución de contenido en tablas.
 
 - **v1.1.0 — 2026-01-31**
   - Añadidas nuevas categorías de eventos para ampliar la cobertura de tipos de actividades.

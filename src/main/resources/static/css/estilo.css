@@ -4,6 +4,13 @@ html, body {
   padding: 0;
 }
 
+.col-evento {
+  min-width: 300px;
+  max-width: 500px;
+  white-space: normal;   /* permite saltos de línea */
+}
+
+
 .leaflet-popup-content {
 	margin: 0 !important;
 }

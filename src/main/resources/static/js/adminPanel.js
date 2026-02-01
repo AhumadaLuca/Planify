@@ -63,11 +63,11 @@ export async function initAdminPanel() {
                         <div>
                         
                         ${org.verificadoOrganizador
-                         ? `<button class="btn btn-sm btn-warning btn-ver-organizador"
+					? `<button class="btn btn-sm btn-warning btn-ver-organizador"
                                 data-organizador-id="${orgId}">
                                 Revocar Verificar
                             </button>`
-                        :`<button class="btn btn-sm btn-success btn-ver-organizador"
+					: `<button class="btn btn-sm btn-success btn-ver-organizador"
                                 data-organizador-id="${orgId}">
                                 Verificar
                             </button>`}
@@ -121,28 +121,38 @@ export async function initAdminPanel() {
                                                     <strong>${_escape(ev.titulo)}</strong><br>
                                                     <small class="text-muted">${_escape(ev.descripcion)}</small>
                                                 </td>
-                                                <td>${_escape(ev.categoria || "—")}</td>
-                                                <td>${fi}<br><small class="text-muted">${ff}</small></td>
+                                                <td style="min-width:140px">${_escape(ev.categoria || "—")}</td>
+                                                <td style="min-width:180px">${fi}<br><small class="text-muted">${ff}</small></td>
 
                                                 <td>
                                                    ${renderEstadoEvento(ev.estado)}
                                                 </td>
 
                                                 <td>
-                                                    ${renderEstadoEventoAdmin(ev)}
-
-                                                    <button class="btn btn-sm btn-primary btn-editar-evento"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#nuevoEventoModal"
-                                                        data-id="${ev.id}">
-                                                        Editar
-                                                    </button>
-
-                                                    <button class="btn btn-sm btn-danger btn-eliminar-evento"
-                                                        data-id="${ev.id}">
-                                                        Eliminar
-                                                    </button>
-                                                </td>
+                                                <div class="d-flex flex-column gap-2 align-items-center">
+												  <div class="d-flex justify-content-center gap-1">
+												
+												    <!-- Acciones de moderación -->
+												    <div class="d-flex flex-wrap gap-1">
+												      ${renderEstadoEventoAdmin(ev)}
+												    </div>
+												    <!-- Acciones generales -->
+												    <div class="d-flex flex-wrap gap-1">
+												      <button class="btn btn-sm btn-outline-primary btn-editar-evento"
+												        data-bs-toggle="modal"
+												        data-bs-target="#nuevoEventoModal"
+												        data-id="${ev.id}">
+												        <strong>Editar<strong>
+												      </button>
+												
+												      <button class="btn btn-sm btn-outline-danger btn-eliminar-evento"
+												        data-id="${ev.id}">
+												        <strong>Eliminar<strong>
+												      </button>
+												    </div>
+												  </div>
+												 </div>
+												</td>
                                             </tr>
                                         `;
 			}).join("")}
@@ -168,7 +178,7 @@ document.addEventListener("click", async (e) => {
 		const id = e.target.dataset.id;
 		const estado = e.target.dataset.estado;
 		if (!id || !estado) return;
-		
+
 		const esAceptado = estado === "ACEPTADO";
 
 		mostrarModalConfirmacion({

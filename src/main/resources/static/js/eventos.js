@@ -405,7 +405,7 @@ export async function verEventosOrganizador() {
 			console.log(evento);
 			fila.innerHTML = `
         <td>${evento.titulo || "-"}</td>
-        <td>${evento.descripcion || "-"}</td>
+        <td class="col-evento">${evento.descripcion || "-"}</td>
         <td>${evento.categoria.nombre || "-"}</td>
         <td>${evento.ubicacion || "-"}</td>
         <td>${formatearFecha(evento.fechaCreacion)}</td>

@@ -1,5 +1,14 @@
 # Changelog
 Todos los cambios notables de este proyecto se documentan en este archivo.
+
+---
+
+## [v1.1.1] - 2026-02-01
+
+### Mejorado
+- Ajustes visuales en paneles de organizador y administrador para mejorar la lectura de eventos con descripciones extensas.
+- Ampliación de modales y reorganización de botones de acción en tablas administrativas.
+
 ---
 
 ## [v1.1.0] - 2026-01-31

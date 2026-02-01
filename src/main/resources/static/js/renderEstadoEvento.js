@@ -15,33 +15,33 @@ export function renderEstadoEventoAdmin(ev) {
 
     case "PENDIENTE":
       return `
-        <button class="btn btn-sm btn-success btn-cambiar-estado-evento"
+        <button class="btn btn-sm btn-outline-success btn-cambiar-estado-evento"
           data-id="${ev.id}"
           data-estado="ACEPTADO">
-          Aceptar
+          <strong>Aceptar<strong>
         </button>
-        <button class="btn btn-sm btn-warning btn-cambiar-estado-evento ms-1"
+        <button class="btn btn-sm btn-outline-warning btn-cambiar-estado-evento"
           data-id="${ev.id}"
           data-estado="RECHAZADO">
-          Rechazar
+          <strong>Rechazar<strong>
         </button>
       `;
 
     case "ACEPTADO":
       return `
-        <button class="btn btn-sm btn-warning btn-cambiar-estado-evento"
+        <button class="btn btn-sm btn-outline-warning btn-cambiar-estado-evento"
           data-id="${ev.id}"
           data-estado="RECHAZADO">
-          Rechazar
+          <strong>Rechazar<strong>
         </button>
       `;
 
     case "RECHAZADO":
       return `
-        <button class="btn btn-sm btn-success btn-cambiar-estado-evento"
+        <button class="btn btn-sm btn-outline-success btn-cambiar-estado-evento"
           data-id="${ev.id}"
           data-estado="ACEPTADO">
-          Aceptar
+          <strong>Aceptar<strong>
         </button>
       `;
 
