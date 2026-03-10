@@ -3,10 +3,11 @@ export function mostrarModalConfirmacion({
     mensaje = "¿Estás seguro?",
     tipo = "primary", // primary | danger | warning | success
     textoBoton = "Aceptar",
-    onConfirm = () => {}
+    onConfirm = () => {},
+    onCancel = () => {}
 }) {
     const modalEl = document.getElementById("modalConfirmacion");
-    const modal = new bootstrap.Modal(modalEl);
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
 
     // Elementos del modal
     const header = document.getElementById("modalConfirmacionHeader");
@@ -29,11 +30,20 @@ export function mostrarModalConfirmacion({
     const newBtn = btnConfirm.cloneNode(true);
     btnConfirm.parentNode.replaceChild(newBtn, btnConfirm);
 
-    // Agregar callback
-    newBtn.addEventListener("click", () => {
-        onConfirm();
+    let confirmado = false;
+
+    newBtn.addEventListener("click", async () => {
+        confirmado = true;
+        await onConfirm();
         modal.hide();
     });
+    
+    // Escuchar cierre
+    modalEl.addEventListener("hidden.bs.modal", () => {
+        if (!confirmado) {
+            onCancel();
+        }
+    }, { once: true });
 
     // Mostrar modal
     modal.show();

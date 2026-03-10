@@ -1,5 +1,5 @@
 # ✨ PLANIFY — Aplicación de Eventos Interactivos
-### v1.1.1 · Versión estable
+### v1.2.0 · Versión estable
 
 Una aplicación web estable que permite visualizar eventos en un mapa interactivo, administrar organizadores y eventos mediante un sistema con CRUD completo, autenticación mediante JWT y un panel de administración para moderación.
 
@@ -49,6 +49,12 @@ Una aplicación web estable que permite visualizar eventos en un mapa interactiv
   - Por categorías, precio máximo y rango de fechas
   - Botón *“Quitar filtros”* para restaurar la vista
   - Filtrado en frontend usando caché local (`eventosCache`)
+-Geolocalización del usuario (GPS):
+  -Centrado automático del mapa en la ubicación del usuario.
+  -Botón GPS que permite activar el seguimiento de ubicación o recentrar el mapa.
+  -Visualización del radio de precisión del GPS en el mapa.
+  -Optimización de seguimiento mediante watchPosition.
+  -Mejora visual del mapa en dispositivos móviles mediante detectRetina.
 
 ### 👤 **Organizadores**
 - Registro y Login mediante JWT
@@ -97,10 +103,22 @@ Una aplicación web estable que permite visualizar eventos en un mapa interactiv
 - JS modularizado (UI, toasts, panel admin)
 - Modales HTML para manejo de GET, acciones y roles
 - Integración completa con endpoints del backend
+-Sistema de caché en frontend para reducir llamadas innecesarias al backend
 
 ---
 
 ## 📘 Registro de versiones (resumen)
+
+- **v1.2.0 — 2026-03-10**
+  -Integración de geolocalización (GPS) para centrar el mapa en la ubicación del usuario.
+  -Botón GPS con activación de seguimiento y recentrado manual.
+  -Mejora visual del mapa para pantallas móviles (detectRetina).
+  -Implementación de caché con TTL para /api/eventos reduciendo llamadas al backend.
+  -Refactor en backend para utilizar EventoResponseDTO en lugar de entidades JPA.
+  -Optimización de consultas Hibernate eliminando el problema N+1.
+  -Mejora del manejo de eventos dinámicos mediante delegación de eventos en frontend.
+  -Ajustes iniciales de diseño responsive para dispositivos móviles.
+  -Correcciones en carga de perfil del organizador y reapertura del panel administrador.
 
 - **v1.1.1 — 2026-02-01**
   - Ajustes y reorganizaciones visuales y ampliación en los paneles de organizador y administrador para una mejor distribución de contenido en tablas.

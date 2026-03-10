@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
 	<meta charset="UTF-8" />
@@ -17,14 +17,39 @@
 <body>
 	<!-- 🔹 NAV SUPERIOR -->
 	<header>
-		<nav>
-			<div id="barra-busqueda">
-				<input id="pac-input" type="text" placeholder="Buscar eventos o lugares..." />
+		<nav class="d-flex align-items-center px-3 bg-white shadow-sm" style="height:60px;">
+
+			<!-- Hamburguesa -->
+			<button id="mobileMenuBtn" class="btn btn-outline-dark d-md-none me-3">
+				☰
+			</button>
+
+			<!-- Contenedor buscador + botones -->
+			<div class="d-flex align-items-center gap-3 flex-grow-1">
+
+				<!-- Buscador (ancho controlado) -->
+				<div class="buscador-wrapper">
+					<input id="pac-input" type="text" class="form-control rounded-pill"
+						data-i18n-placeholder="buscarEventos" />
+				</div>
+
+				<!-- Botón filtros -->
+				<a href="#" class="menu-item d-flex align-items-center text-decoration-none gap-2 btn-filtros"
+					data-bs-toggle="modal" data-bs-target="#filtrosModal">
+					<i class="ti ti-filter-filled fs-4"></i>
+					<span class="d-none d-md-inline" data-i18n="filtros"></span>
+				</a>
+
+				<!-- Botón quitar filtros -->
+				<button id="btnQuitarFiltros" class="btn btn-outline-danger d-none quitar-filtros-btn"
+					data-i18n="quitarFiltros">
+				</button>
+
 			</div>
 		</nav>
 	</header>
 	<!-- 🔹 SIDEBAR -->
-	<div class="sidebar">
+	<div class="sidebar d-flex flex-column">
 		<div class="d-flex justify-content-center align-items-center pb-3 pt-3">
 			<img src="assets/icons/planify circulo.svg" alt="Planify" style="width:50px; height: 50px;">
 			<h5 style="margin: 0;margin-right: 20px; padding-inline: 12px;">Planify</h5>
@@ -33,26 +58,50 @@
 		<a href="#" class="menu-item d-flex justify-content-center align-items-center w-100 text-decoration-none gap-2"
 			style="padding-left:0px;" data-bs-toggle="collapse" data-bs-target="#usuarioMenu" aria-expanded="false">
 			<i class="ti ti-user-filled fs-4" aria-hidden="true"></i>
-			<span>Organizadores</span>
+			<span data-i18n="organizadores"></span>
 		</a>
 		<div class="collapse ps-3" id="usuarioMenu">
 			<!-- Cambiar dinámicamente según sesión -->
 		</div>
-		<a href="#" class="menu-item d-flex justify-content-center align-items-center w-100 text-decoration-none gap-2"
-			style="padding-left:0px;" data-bs-toggle="modal" data-bs-target="#filtrosModal">
-			<i class="ti ti-filter-filled fs-4" aria-hidden="true"></i>
-			<span>Filtros</span>
-		</a>
-		<button id="btnQuitarFiltros" class="btn btn-outline-danger d-none quitar-filtros-btn">
-			Quitar filtros
-		</button>
-	</div>
+		<div class="mt-auto pb-3 px-3">
 
+			<div class="text-center small mb-1" data-i18n="idioma">
+				<a>Idioma</a>
+			</div>
+
+			<div class="dropdown text-center">
+
+				<button class="btn btn-outline-light btn-sm dropdown-toggle w-100" type="button"
+					data-bs-toggle="dropdown" aria-expanded="false">
+					<span id="idiomaActual">ES</span>
+				</button>
+
+				<ul class="dropdown-menu w-100 text-center">
+
+					<li>
+						<button id="btnLangES" class="dropdown-item btn-idioma">
+							🇪🇸 Español
+						</button>
+					</li>
+
+					<li>
+						<button id="btnLangEN" class="dropdown-item btn-idioma">
+							🇺🇸 English
+						</button>
+					</li>
+
+				</ul>
+
+			</div>
+
+		</div>
+	</div>
+	<div class="overlay"></div>
 
 	<!-- Panel de resultados -->
 	<div id="search-results-panel" class="search-results">
 		<div class="search-header">
-			<span>Resultados</span>
+			<span data-i18n="resultados"></span>
 			<button id="btn-minimizar-search">➖</button>
 		</div>
 		<!-- Resultados de búsqueda -->
@@ -69,45 +118,45 @@
 		<div class="modal-dialog modal-dialog-centered">
 			<div class="modal-content">
 				<div class="modal-header">
-					<h5 class="modal-title">Confirmación de edad</h5>
+					<h5 class="modal-title" data-i18n="confirmarEdad"></h5>
 				</div>
 				<div class="modal-body">
-					<p>
-						Esta aplicación puede mostrar eventos destinados únicamente a mayores de 18 años.
-						¿Confirmás que sos mayor de edad?
-					</p>
+					<p data-i18n="textoConfirmarEdad"></p>
 				</div>
 				<div class="modal-footer">
-					<button id="btn-age-exit" class="btn btn-secondary">
-						Salir
+					<button id="btn-age-exit" class="btn btn-secondary" data-i18n="salir">
 					</button>
-					<button id="btn-age-deny" class="btn btn-warning">
-						Soy MENOR de 18
+					<button id="btn-age-deny" class="btn btn-warning" data-i18n="soyMenor18">
 					</button>
-					<button id="btn-age-confirm" class="btn btn-success">
-						Soy MAYOR de 18
+					<button id="btn-age-confirm" class="btn btn-success" data-i18n="soyMayor18">
 					</button>
 				</div>
 			</div>
 		</div>
 	</div>
 
+
+	<!-- 🔹 MAPA -->
+	<div id="map"></div>
+	<button id="btnUbicacion" class="btn-gps">
+		<i class="bi bi-geo-alt-fill"></i>
+	</button>
 	<!--  MODAL LOGIN  -->
 	<div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
 		<div class="modal-dialog modal-sm modal-dialog-centered">
 			<div class="modal-content">
 				<form id="formLogin" class="p-0">
 					<div class="modal-header bg-primary text-white">
-						<h5 class="modal-title">Iniciar sesión</h5>
+						<h5 class="modal-title" data-i18n="login"></h5>
 						<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
 					</div>
 					<div class="modal-body">
 						<div class="mb-3">
-							<label for="loginEmail" class="form-label">Email</label>
+							<label for="loginEmail" class="form-label" data-i18n="email"></label>
 							<input type="email" id="loginEmail" name="email" class="form-control" required>
 						</div>
 						<div class="mb-3">
-							<label for="loginPassword" class="form-label">Contraseña</label>
+							<label for="loginPassword" class="form-label" data-i18n="password"></label>
 							<div class="input-group">
 								<input type="password" id="loginPassword" name="password" class="form-control" required
 									minlength="6" data-password>
@@ -118,8 +167,9 @@
 						<div id="loginError" class="alert alert-danger d-none" role="alert"></div>
 					</div>
 					<div class="modal-footer">
-						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-						<button type="submit" class="btn btn-primary">Entrar</button>
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+							data-i18n="cancelar"></button>
+						<button type="submit" class="btn btn-primary" data-i18n="entrar"></button>
 					</div>
 				</form>
 			</div>
@@ -132,7 +182,7 @@
 			<div class="modal-content">
 				<form id="formRegistro" class="p-0">
 					<div class="modal-header bg-success text-white">
-						<h5 class="modal-title" id="registroModalTitulo">Registro - Organizador</h5>
+						<h5 class="modal-title" id="registroModalTitulo" data-i18n="registroOrganizador"></h5>
 						<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
 					</div>
 
@@ -141,14 +191,14 @@
 
 						<div class="row g-3">
 							<div class="col-md-6">
-								<label class="form-label">Nombre</label>
+								<label class="form-label" data-i18n="nombre"></label>
 								<input type="text" name="nombre" id="regNombre" class="form-control" required
 									maxlength="50">
 								<small class="text-danger d-none" id="errorNombre"></small>
 
 							</div>
 							<div class="col-md-6">
-								<label class="form-label">Apellido</label>
+								<label class="form-label" data-i18n="apellido"></label>
 								<input type="text" name="apellido" id="regApellido" class="form-control" required
 									maxlength="50">
 								<small class="text-danger d-none" id="errorApellido"></small>
@@ -156,14 +206,14 @@
 							</div>
 
 							<div class="col-12">
-								<label class="form-label">Email</label>
+								<label class="form-label" data-i18n="email"></label>
 								<input type="email" name="email" id="regEmail" class="form-control" required>
 								<small class="text-danger d-none" id="errorEmail"></small>
 
 							</div>
 
 							<div class="col-md-6">
-								<label class="form-label">Contraseña</label>
+								<label class="form-label" data-i18n="password"></label>
 								<div class="input-group">
 									<input type="password" name="password" id="regPassword" class="form-control"
 										required minlength="6" data-password>
@@ -176,7 +226,7 @@
 							</div>
 
 							<div class="col-md-6">
-								<label class="form-label">Repetir contraseña</label>
+								<label class="form-label" data-i18n="password2"></label>
 								<div class="input-group">
 									<input type="password" id="regPassword2" class="form-control" required minlength="6"
 										data-password>
@@ -188,21 +238,21 @@
 							</div>
 
 							<div class="col-md-6">
-								<label class="form-label">Fecha de nacimiento</label>
+								<label class="form-label" data-i18n="fechaNacimiento"></label>
 								<input type="date" name="fechaNacimiento" id="regFechaNacimiento" class="form-control"
 									required>
 								<small class="text-danger d-none" id="errorFechaNacimiento"></small>
 
 							</div>
 							<div class="col-md-6">
-								<label class="form-label">Telefono</label>
+								<label class="form-label" data-i18n="telCel"></label>
 								<input type="tel" name="Telefono" id="regTelefono" class="form-control" required>
 								<small class="text-danger d-none" id="errorTelefono"></small>
 
 							</div>
 
 							<div class="col-md-6">
-								<label class="form-label">Nombre de su organización</label>
+								<label class="form-label" data-i18n="nombreOrg"></label>
 								<input type="text" name="nombreOrganizacion" id="regNombreOrganizacion"
 									class="form-control" maxlength="100">
 								<small class="text-danger d-none" id="errorNombreOrganizacion"></small>
@@ -210,7 +260,7 @@
 							</div>
 
 							<div class="col-md-6">
-								<label class="form-label">Dirección de su organización</label>
+								<label class="form-label" data-i18n="direccionOrg"></label>
 								<input type="text" name="direccionOrganizacion" id="regDireccionOrganizacion"
 									class="form-control" maxlength="100">
 								<small class="text-danger d-none" id="errorDireccionOrganizacion"></small>
@@ -218,7 +268,7 @@
 							</div>
 
 							<div class="col-md-12">
-								<label class="form-label">Foto de Perfil</label>
+								<label class="form-label" data-i18n="fotoPerfil"></label>
 								<input type="file" name="imagen" id="regImagenPerfil" class="form-control"
 									accept="image/*" />
 								<small class="text-danger d-none" id="errorImagenPerfil"></small>
@@ -228,17 +278,16 @@
 					</div>
 
 					<div class="modal-footer">
-						<button type="button" class="btn btn-outline-secondary"
-							data-bs-dismiss="modal">Cancelar</button>
-						<button type="submit" class="btn btn-success" id="btnRegistroOrganizador">Registro</button>
+						<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"
+							data-i18n="cancelar"></button>
+						<button type="submit" class="btn btn-success" id="btnRegistroOrganizador"
+							data-i18n="registro"></button>
 					</div>
 				</form>
 			</div>
 		</div>
 	</div>
 
-	<!-- 🔹 MAPA -->
-	<div id="map"></div>
 
 	<!-- 🔹 MODAL NUEVO/EDITAR EVENTO -->
 	<div class="modal fade" id="nuevoEventoModal" tabindex="-1" aria-labelledby="nuevoEventoModalLabel"
@@ -247,23 +296,23 @@
 			<div class="modal-content">
 				<form id="formEvento">
 					<div class="modal-header bg-primary text-white">
-						<h5 class="modal-title" id="tituloModalEvento">Crear Nuevo Evento</h5>
+						<h5 class="modal-title" id="tituloModalEvento" data-i18n="crearEvento"></h5>
 						<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
 					</div>
 					<div class="modal-body">
 						<div id="eventoError" class="alert alert-danger d-none" role="alert"></div>
 						<div class="row g-3">
 							<div class="col-md-6">
-								<label class="form-label">Título</label>
+								<label class="form-label" data-i18n="eventoTitulo"></label>
 								<input type="text" name="titulo" class="form-control" id="eventoTitulo" required
 									maxlength="50" />
 								<small class="invalid-feedback d-none" id="errorTitulo"></small>
 							</div>
 
 							<div class="col-md-6">
-								<label class="form-label">Categoría</label>
+								<label class="form-label" data-i18n="categoria"></label>
 								<select name="categoriaId" id="eventoCategoriaId" class="form-select" required>
-									<option value="">Selecciona una categoría</option>
+									<option value="" data-i18n="seleccionarCategoria"></option>
 									<option value="1">Música</option>
 									<option value="2">Deporte</option>
 									<option value="3">Teatro</option>
@@ -279,33 +328,33 @@
 							</div>
 
 							<div class="col-12">
-								<label class="form-label">Descripción</label>
+								<label class="form-label" data-i18n="descripcion"></label>
 								<textarea name="descripcion" id="eventoDescripcion" class="form-control" rows="3"
 									maxlength="500" required></textarea>
 								<small class="invalid-feedback d-none" id="errorDescripcion"></small>
 							</div>
 
 							<div class="col-md-6">
-								<label class="form-label">Fecha de inicio</label>
+								<label class="form-label" data-i18n="fechaInicio"></label>
 								<input type="datetime-local" name="fechaInicio" id="eventoFechaInicio"
 									class="form-control" required />
 								<small class="invalid-feedback d-none" id="errorFechaInicio"></small>
 							</div>
 
 							<div class="col-md-6">
-								<label class="form-label">Fecha de fin</label>
+								<label class="form-label" data-i18n="fechaFin"></label>
 								<input type="datetime-local" name="fechaFin" id="eventoFechaFin" class="form-control"
 									required />
 								<small class="invalid-feedback d-none" id="errorFechaFin"></small>
 							</div>
 
 							<div class="col-12">
-								<label class="form-label">Dirección</label>
+								<label class="form-label" data-i18n="direccion"></label>
 								<div class="input-group mb-2">
 									<input type="text" id="eventoDireccion" name="ubicacion" class="form-control"
 										placeholder="Ej: Av. Corrientes 123, Buenos Aires" required />
-									<button type="button" id="btnBuscarDireccion" class="btn btn-outline-primary">
-										Buscar
+									<button type="button" id="btnBuscarDireccion" class="btn btn-outline-primary"
+										data-i18n="buscar">
 									</button>
 								</div>
 								<small class="invalid-feedback d-none" id="errorDireccion"></small>
@@ -321,14 +370,14 @@
 							<small class="invalid-feedback d-none" id="errorLongitud"></small>
 
 							<div class="col-md-4">
-								<label class="form-label">Precio</label>
+								<label class="form-label" data-i18n="precio"></label>
 								<input type="number" step="0.01" name="precio" id="eventoPrecio" class="form-control"
 									placeholder="0 si es gratis" />
 								<small class="invalid-feedback d-none" id="errorPrecio"></small>
 							</div>
 
 							<div class="col-md-6">
-								<label class="form-label">Imagen del evento</label>
+								<label class="form-label" data-i18n="imagenEvento"></label>
 								<input type="file" name="imagen" id="eventoImagen" class="form-control"
 									accept="image/*" />
 								<img id="previewImagenEvento" src="" alt="Vista previa" class="mt-2 img-fluid rounded"
@@ -337,39 +386,36 @@
 							</div>
 
 							<div class="col-md-6">
-								<label class="form-label">Enlace compra externo</label>
+								<label class="form-label" data-i18n="enlaceCompraExterno"></label>
 								<input type="url" name="urlVentaExterna" id="eventoUrlVentaExterna" class="form-control"
 									placeholder="https://www.tuentrada.com/evento123" />
 								<small class="invalid-feedback d-none" id="errorUrlVentaExterna"></small>
 							</div>
 							<div class="col-md-12">
-								<label class="form-label">Redes sociales / Página web</label>
+								<label class="form-label" data-i18n="redesPagina"></label>
 								<div id="redesWrapper" class="mb-2">
 									<!-- aquí se agregarán las filas dinámicamente -->
 								</div>
-								<button type="button" id="btnAddLink" class="btn btn-outline-primary btn-sm mb-3">
-									+ Agregar link
+								<button type="button" id="btnAddLink" class="btn btn-outline-primary btn-sm mb-3"
+									data-i18n="agregarLink">
 								</button>
-								<small class="form-text text-muted">Ingresa URLs completas (https://...). Se detectará
-									el ícono automáticamente.</small>
+								<small class="form-text text-muted" data-i18n="agregarExp"></small>
 							</div>
 							<div class="col-md-6 d-flex align-items-center">
 								<div class="form-check mt-3">
 									<input class="form-check-input" type="checkbox" name="requiereVerificarEdad"
 										id="eventoRequiereVerificarEdad" />
-									<label class="form-check-label" for="requiereVerificarEdad">
-										Requiere verificación de edad
+									<label class="form-check-label" for="requiereVerificarEdad"
+										data-i18n="verificarEdad">
 									</label>
 								</div>
 							</div>
 						</div>
 					</div>
 					<div class="modal-footer">
-						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-							Cancelar
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancelar">
 						</button>
-						<button type="submit" class="btn btn-success" id="btnGuardarEvento">
-							Crear Evento
+						<button type="submit" class="btn btn-success" id="btnGuardarEvento" data-i18n="crearEvento">
 						</button>
 					</div>
 				</form>
@@ -382,7 +428,7 @@
 		<div class="modal-dialog modal-md modal-dialog-centered">
 			<div class="modal-content">
 				<div class="modal-header bg-secondary text-white">
-					<h5 class="modal-title">Filtros</h5>
+					<h5 class="modal-title" data-i18n="filtros"></h5>
 					<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
 				</div>
 
@@ -391,83 +437,113 @@
 
 						<!-- Categorías -->
 						<div class="mb-3">
-							<label class="form-label">Categorías</label><br>
+							<label class="form-label" data-i18n="categorias"></label><br>
 
 							<div class="form-check">
 								<input type="checkbox" class="form-check-input filtro-categoria" value="Música"
 									id="catMusica">
-								<label for="catMusica" class="form-check-label">🎵 Música</label>
+								<label for="catMusica" class="form-check-label">
+									🎵
+									<span data-i18n="catMusica"></span>
+								</label>
 							</div>
 
 							<div class="form-check">
 								<input type="checkbox" class="form-check-input filtro-categoria" value="Deporte"
 									id="catDeporte">
-								<label for="catDeporte" class="form-check-label">🏅 Deporte</label>
+								<label for="catDeporte" class="form-check-label">
+									🏅
+									<span data-i18n="catDeporte"></span>
+								</label>
 							</div>
 
 							<div class="form-check">
 								<input type="checkbox" class="form-check-input filtro-categoria" value="Teatro"
 									id="catTeatro">
-								<label for="catTeatro" class="form-check-label">🎭 Teatro</label>
+								<label for="catTeatro" class="form-check-label">
+									🎭
+									<span data-i18n="catTeatro"></span>
+								</label>
 							</div>
 
 							<div class="form-check">
 								<input type="checkbox" class="form-check-input filtro-categoria" value="Artes & Cultura"
 									id="catCultura">
-								<label for="catCultura" class="form-check-label">🎨 Artes & Cultura</label>
+								<label for="catCultura" class="form-check-label">
+									🎨
+									<span data-i18n="catCultura"></span>
+								</label>
 							</div>
 
 							<div class="form-check">
 								<input type="checkbox" class="form-check-input filtro-categoria" value="Gastronomía"
 									id="catGastro">
-								<label for="catGastro" class="form-check-label">🍽️ Gastronomía</label>
+								<label for="catGastro" class="form-check-label">
+									🍽️
+									<span data-i18n="catGastro"></span>
+								</label>
 							</div>
 
 							<div class="form-check">
 								<input type="checkbox" class="form-check-input filtro-categoria"
 									value="Festivales & Ferias" id="catFerias">
-								<label for="catFerias" class="form-check-label">🎪 Festivales & Ferias</label>
+								<label for="catFerias" class="form-check-label">
+									🎪
+									<span data-i18n="catFerias"></span>
+								</label>
 							</div>
 
 							<div class="form-check">
 								<input type="checkbox" class="form-check-input filtro-categoria" value="Educación"
 									id="catEdu">
-								<label for="catEdu" class="form-check-label">📚 Educación</label>
+								<label for="catEdu" class="form-check-label">
+									📚
+									<span data-i18n="catEdu"></span>
+								</label>
 							</div>
 
 							<div class="form-check">
 								<input type="checkbox" class="form-check-input filtro-categoria" value="Familiar"
 									id="catFamiliar">
-								<label for="catFamiliar" class="form-check-label">👨‍👩‍👧‍👦 Familiar</label>
+								<label for="catFamiliar" class="form-check-label">
+									👨‍👩‍👧‍👦
+									<span data-i18n="catFamiliar"></span>
+								</label>
 							</div>
 
 							<div class="form-check">
 								<input type="checkbox" class="form-check-input filtro-categoria" value="Tecnología"
 									id="catTech">
-								<label for="catTech" class="form-check-label">💻 Tecnología</label>
+								<label for="catTech" class="form-check-label">
+									💻
+									<span data-i18n="catTech"></span>
+								</label>
 							</div>
 
 							<div class="form-check">
 								<input type="checkbox" class="form-check-input filtro-categoria" value="Bienestar"
 									id="catWellness">
-								<label for="catWellness" class="form-check-label">🧘 Bienestar</label>
+								<label for="catWellness" class="form-check-label">
+									🧘
+									<span data-i18n="catWellness"></span>
+								</label>
 							</div>
 						</div>
 
 						<!-- Precio -->
 						<div class="mb-3">
-							<label class="form-label">Precio máximo</label>
+							<label class="form-label" data-i18n="precioMaximo"></label>
 							<input type="number" id="filtroPrecio" class="form-control" placeholder="Ej: 1000">
 						</div>
 
 						<!-- Fechas -->
 						<div class="mb-3">
-							<label class="form-label">Fecha desde</label>
+							<label class="form-label" data-i18n="fechaDesde"></label>
 							<input type="date" id="filtroFechaDesde" class="form-control">
 						</div>
 
 						<div class="mb-3">
-							<label class="form-label">Fecha hasta</label>
+							<label class="form-label" data-i18n="fechaHasta"></label>
 							<input type="date" id="filtroFechaHasta" class="form-control">
 						</div>
 
@@ -475,8 +551,10 @@
 				</div>
 
 				<div class="modal-footer">
-					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
-					<button id="btnAplicarFiltros" type="button" class="btn btn-primary">Aplicar filtros</button>
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"
+						data-i18n="cerrar"></button>
+					<button id="btnAplicarFiltros" type="button" class="btn btn-primary"
+						data-i18n="aplicarFiltros"></button>
 				</div>
 			</div>
 		</div>
@@ -508,7 +586,7 @@
 		<div class="modal-dialog modal-xl modal-dialog-centered">
 			<div class="modal-content">
 				<div class="modal-header bg-primary text-white">
-					<h5 class="modal-title" id="detalleEventoModalLabel">Detalles del Evento</h5>
+					<h5 class="modal-title" id="detalleEventoModalLabel" data-i18n="detalleEvento"></h5>
 					<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
 				</div>
 				<div class="modal-body">
@@ -516,20 +594,20 @@
 						<table id="tablaEventosOrganizador" class="table table-bordered table-striped align-middle">
 							<thead class="table-dark">
 								<tr>
-									<th>Título</th>
-									<th class="col-evento">Descripción</th>
-									<th>Categoría</th>
-									<th>Ubicación</th>
-									<th>Fecha creación</th>
-									<th>Fecha inicio</th>
-									<th>Fecha fin</th>
-									<th>Imagen</th>
-									<th>Precio</th>
-									<th>URL compra externa</th>
+									<th data-i18n="titulo"></th>
+									<th class="col-evento" data-i18n="descripcion"></th>
+									<th data-i18n="detalleEventoCategoría"></th>
+									<th data-i18n="detalleEventoUbicación"></th>
+									<th data-i18n="detalleEventoFechaCreación"></th>
+									<th data-i18n="fechaInicio"></th>
+									<th data-i18n="fechaFin"></th>
+									<th data-i18n="detalleEventoImagen"></th>
+									<th data-i18n="precio"></th>
+									<th data-i18n="detalleEventoURL"></th>
 									<th>+18</th>
-									<th>Estado</th>
-									<th>Redes Sociales</th>
-									<th>Acciones</th>
+									<th data-i18n="detalleEventoEstado"></th>
+									<th data-i18n="detalleEventoRedes"></th>
+									<th data-i18n="detalleEventoAcciones"></th>
 								</tr>
 							</thead>
 							<tbody>
@@ -539,7 +617,8 @@
 
 					</div>
 					<div class="modal-footer">
-						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+							data-i18n="cerrar"></button>
 					</div>
 				</div>
 			</div>
@@ -551,7 +630,7 @@
 		<div class="modal-dialog modal-xl modal-dialog-scrollable">
 			<div class="modal-content">
 				<div class="modal-header bg-dark text-white">
-					<h5 class="modal-title" id="adminPanelLabel">Panel de Administración</h5>
+					<h5 class="modal-title" id="adminPanelLabel" data-i18n="panelAdmin2"></h5>
 					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
 				</div>
 
@@ -568,7 +647,7 @@
 				</div>
 
 				<div class="modal-footer">
-					<button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+					<button class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cerrar"></button>
 				</div>
 			</div>
 		</div>
@@ -585,15 +664,17 @@
 			<div class="modal-content">
 
 				<div class="modal-header" id="modalConfirmacionHeader">
-					<h5 class="modal-title" id="modalConfirmacionLabel">Título</h5>
+					<h5 class="modal-title" id="modalConfirmacionLabel" data-i18n="titulo"></h5>
 					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
 				</div>
 
-				<div class="modal-body" id="modalConfirmacionMensaje">Mensaje</div>
+				<div class="modal-body" id="modalConfirmacionMensaje"></div>
 
 				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-					<button type="button" class="btn btn-primary" id="modalConfirmacionBtn">Aceptar</button>
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+						data-i18n="cancelar"></button>
+					<button type="button" class="btn btn-primary" id="modalConfirmacionBtn"
+						data-i18n="aceptar"></button>
 				</div>
 
 			</div>

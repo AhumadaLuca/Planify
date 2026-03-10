@@ -13,6 +13,7 @@ export function initBuscadorEventos() {
 	const input = document.getElementById("pac-input");
 	const panel = document.getElementById("search-results-panel");
 	const list = document.getElementById("search-results-list");
+	const btnAbrir = document.getElementById("btn-abrir-search");
 
 	let timer;
 	let searchWasEmpty = true;
@@ -36,6 +37,8 @@ export function initBuscadorEventos() {
 				e.titulo?.toLowerCase().includes(q) ||
 				e.ubicacion?.toLowerCase().includes(q)
 			);
+			
+			
 
 			dibujarEventosEnMapa(resultados);
 			renderResultados(resultados);
@@ -46,7 +49,7 @@ export function initBuscadorEventos() {
 		list.innerHTML = '';
 
 		if (eventos.length === 0) {
-			list.innerHTML = `<li class="text-muted">Sin resultados</li>`;
+			list.innerHTML = `<li class="text-muted">${t("sinResultados")}</li>`;
 			panel.classList.remove("d-none");
 			return;
 		}
@@ -67,6 +70,10 @@ export function initBuscadorEventos() {
 
 			li.addEventListener("click", () => {
 				enfocarEventoEnMapa(ev);
+				panel.classList.remove("open");
+				
+				btnAbrir.classList.add("visible");
+				
 			});
 
 			list.appendChild(li);

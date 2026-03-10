@@ -1,3 +1,5 @@
+import { t } from "./i18n.js";
+
 export function actualizarMenuUsuario() {
 	
     const token = localStorage.getItem("token");
@@ -11,26 +13,26 @@ export function actualizarMenuUsuario() {
     if (!token) {
         // Usuario NO logueado
         menu.innerHTML = `
-            <a href="#" id="linkLogin" data-bs-toggle="modal" data-bs-target="#loginModal" class="menu-item"><i class="ti ti-user-up me-1 fs-5" aria-hidden="true"></i> Iniciar Sesión</a>
-            <a href="#" id="linkRegistro" data-bs-toggle="modal" data-bs-target="#registroModal" class="menu-item"><i class="ti ti-user-plus me-1 fs-5" aria-hidden="true"></i> Registrarse</a>
+            <a href="#" id="linkLogin" data-bs-toggle="modal" data-bs-target="#loginModal" class="menu-item"><i class="ti ti-user-up me-1 fs-5" aria-hidden="true"></i> ${t("login")}</a>
+            <a href="#" id="linkRegistro" data-bs-toggle="modal" data-bs-target="#registroModal" class="menu-item"><i class="ti ti-user-plus me-1 fs-5" aria-hidden="true"></i> ${t("registro")}</a>
         `;
         return;
     }
 
     // Usuario logueado
     menu.innerHTML = `
-        <span class="d-flex justify-content-center align-items-center text-white fw-semibold mb-2 mt-2" style="margin-right:25px;"><i class="ti ti-mood-happy-filled me-1 fs-3" aria-hidden="true"></i> Hola, ${nombre}</span>
-        <a href="#" id="linkPerfil" class="menu-item"><i class="ti ti-user-edit me-1 fs-5" aria-hidden="true"></i> Mi Perfil</a>
+        <span class="d-flex justify-content-center align-items-center text-white fw-semibold mb-2 mt-2" style="margin-right:25px;"><i class="ti ti-mood-happy-filled me-1 fs-3" aria-hidden="true"></i> ${t("hola")}, ${nombre}</span>
+        <a href="#" id="linkPerfil" class="menu-item"><i class="ti ti-user-edit me-1 fs-5" aria-hidden="true"></i> ${t("miPerfil")}</a>
         ${rol === "ADMIN" ? `<a href="#" id="linkAdminPanel" data-bs-toggle="modal" data-bs-target="#adminPanelModal" class="menu-item d-flex justify-content-start align-items-start w-100 text-decoration-none gap-2">
-			<i class="ti ti-settings me-1 fs-5" aria-hidden="true"></i> Panel Admin</a>` : ""}
+			<i class="ti ti-settings me-1 fs-5" aria-hidden="true"></i> ${t("panelAdmin")}</a>` : ""}
 			
         ${rol === "ORGANIZADOR" ? `<a href="#" id="linkEventosOrganizador" data-bs-toggle="modal" data-bs-target="#modalAdministrarEventosOrganizador" class="menu-item d-flex justify-content-start align-items-center w-100 text-decoration-none gap-2">
-			<i class="ti ti-list-details me-1 fs-5" aria-hidden="true"></i> Mis Eventos</a>` : ""}
+			<i class="ti ti-list-details me-1 fs-5" aria-hidden="true"></i> ${t("misEventos")}</a>` : ""}
 			
 		${rol === "ORGANIZADOR" ? `<a href="#" id="linkNuevoEvento" data-bs-toggle="modal" data-bs-target="#nuevoEventoModal" class="menu-item d-flex justify-content-start align-items-center w-100 text-decoration-none gap-2">
-			<i class="ti ti-circle-plus me-1 fs-5" aria-hidden="true"></i> Agregar Evento</a>` : ""}
+			<i class="ti ti-circle-plus me-1 fs-5" aria-hidden="true"></i> ${t("agregarEvento")}</a>` : ""}
         
-       <a href="#" id="btnLogout" class="menu-item"><i class="ti ti-user-down me-1 fs-5" aria-hidden="true"></i> Cerrar sesión</a>
+       <a href="#" id="btnLogout" class="menu-item"><i class="ti ti-user-down me-1 fs-5" aria-hidden="true"></i> ${t("cerrarSesion")}</a>
     `;
 
     // Acción logout

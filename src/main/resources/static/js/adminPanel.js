@@ -4,23 +4,29 @@ import { mostrarToast } from './toastsGenerico.js';
 import { mostrarModalConfirmacion } from "./confirmarGenerico.js";
 import { abrirModalDetalle } from "./modalDetallesGenerico.js";
 import { renderEstadoEvento, renderEstadoEventoAdmin } from "./renderEstadoEvento.js";
+import { t } from "./i18n.js";
 
-export async function initAdminPanel() {
+const adminModalEl = document.getElementById("adminPanelModal");
+export const panelModal = new bootstrap.Modal(adminModalEl);
+
+let adminCache = null;
+
+
+
+export async function initAdminPanel(forceReload = false) {
 	const tbody = document.getElementById("eventosAdminBody");
+
+	if (adminCache && !forceReload) {
+		renderAdminTable(adminCache);
+		return;
+	}
+
 	if (!tbody) return console.error("No se encontró #eventosAdminBody en el DOM");
 
-	const _escape = (str) => {
-		if (typeof escapeHtml === "function") return escapeHtml(str);
-		if (str === null || str === undefined) return "";
-		return String(str)
-			.replaceAll("&", "&amp;")
-			.replaceAll("<", "&lt;")
-			.replaceAll(">", "&gt;")
-			.replaceAll('"', "&quot;")
-			.replaceAll("'", "&#039;");
-	};
 
-	tbody.innerHTML = `<tr><td colspan="8" class="text-center">Cargando...</td></tr>`;
+	if (!adminCache || forceReload) {
+		tbody.innerHTML = `<tr><td colspan="8" class="text-center">${t("carga")}</td></tr>`;
+	}
 
 	try {
 		const resp = await fetch("http://localhost:8080/api/admin/organizadoresYeventos", {
@@ -31,144 +37,17 @@ export async function initAdminPanel() {
 
 		const organizadores = await resp.json();
 
+		adminCache = organizadores;
+
 		if (!Array.isArray(organizadores) || organizadores.length === 0) {
-			tbody.innerHTML = `<tr><td colspan="8" class="text-center">No hay organizadores.</td></tr>`;
+			tbody.innerHTML = `<tr><td colspan="8" class="text-center">${t("noOrg")}</td></tr>`;
 			return;
 		}
 
-		tbody.innerHTML = "";
-
-		organizadores.forEach(org => {
-			const orgId = org.organizadorId;
-			const eventos = org.eventos || [];
-
-			const collapseId = `eventos-org-${orgId}`;
-
-			// Fila principal del organizador
-			const trOrg = document.createElement("tr");
-			trOrg.classList.add("table-primary");
-			trOrg.innerHTML = `
-                <td colspan="8">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>${_escape(org.nombreOrganizador)}</strong>
-                            <br>
-                            <span class="text-muted">${_escape(org.emailOrganizador)}</span>
-                            <br>
-                            ${org.verificadoOrganizador
-					? '<span class="badge bg-success">Verificado</span>'
-					: '<span class="badge bg-secondary">No verificado</span>'}
-                        </div>
-
-                        <div>
-                        
-                        ${org.verificadoOrganizador
-					? `<button class="btn btn-sm btn-warning btn-ver-organizador"
-                                data-organizador-id="${orgId}">
-                                Revocar Verificar
-                            </button>`
-					: `<button class="btn btn-sm btn-success btn-ver-organizador"
-                                data-organizador-id="${orgId}">
-                                Verificar
-                            </button>`}
-
-                            <button class="btn btn-sm btn-danger btn-eliminar-organizador"
-                                data-organizador-id="${orgId}">
-                                Eliminar Organizador
-                            </button>
-
-                            <button class="btn btn-sm btn-info"
-                                data-bs-toggle="collapse"
-                                data-bs-target="#${collapseId}">
-                                Ver eventos (${eventos.length})
-                            </button>
-                        </div>
-                    </div>
-                </td>
-            `;
-			tbody.appendChild(trOrg);
-
-			// Fila que contiene la tabla colapsable
-			const trEventos = document.createElement("tr");
-			trEventos.innerHTML = `
-                <td colspan="8" class="p-0">
-                    <div id="${collapseId}" class="collapse">
-                        ${eventos.length === 0 ? `
-                            <div class="p-3 text-center text-muted">
-                                Este organizador no tiene eventos.
-                            </div>
-                        ` : `
-                            <table class="table table-sm table-bordered m-0">
-                                <thead>
-                                    <tr class="table-light">
-                                        <th>ID</th>
-                                        <th>Título</th>
-                                        <th>Categoría</th>
-                                        <th>Fechas</th>
-                                        <th>Estado</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${eventos.map(ev => {
-				const fi = ev.fechaInicio ? ev.fechaInicio.replace("T", " ").slice(0, 16) : "—";
-				const ff = ev.fechaFin ? ev.fechaFin.replace("T", " ").slice(0, 16) : "—";
-
-				return `
-                                            <tr>
-                                                <td>${_escape(ev.id)}</td>
-                                                <td>
-                                                    <strong>${_escape(ev.titulo)}</strong><br>
-                                                    <small class="text-muted">${_escape(ev.descripcion)}</small>
-                                                </td>
-                                                <td style="min-width:140px">${_escape(ev.categoria || "—")}</td>
-                                                <td style="min-width:180px">${fi}<br><small class="text-muted">${ff}</small></td>
-
-                                                <td>
-                                                   ${renderEstadoEvento(ev.estado)}
-                                                </td>
-
-                                                <td>
-                                                <div class="d-flex flex-column gap-2 align-items-center">
-												  <div class="d-flex justify-content-center gap-1">
-												
-												    <!-- Acciones de moderación -->
-												    <div class="d-flex flex-wrap gap-1">
-												      ${renderEstadoEventoAdmin(ev)}
-												    </div>
-												    <!-- Acciones generales -->
-												    <div class="d-flex flex-wrap gap-1">
-												      <button class="btn btn-sm btn-outline-primary btn-editar-evento"
-												        data-bs-toggle="modal"
-												        data-bs-target="#nuevoEventoModal"
-												        data-id="${ev.id}">
-												        <strong>Editar<strong>
-												      </button>
-												
-												      <button class="btn btn-sm btn-outline-danger btn-eliminar-evento"
-												        data-id="${ev.id}">
-												        <strong>Eliminar<strong>
-												      </button>
-												    </div>
-												  </div>
-												 </div>
-												</td>
-                                            </tr>
-                                        `;
-			}).join("")}
-                                </tbody>
-                            </table>
-                        `}
-                    </div>
-                </td>
-            `;
-
-			tbody.appendChild(trEventos);
-		});
+		renderAdminTable(organizadores);
 
 	} catch (err) {
-		console.error("Error cargando admin panel:", err);
-		tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error cargando datos.</td></tr>`;
+		tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">${t("noDatos")}</td></tr>`;
 	}
 }
 
@@ -181,11 +60,18 @@ document.addEventListener("click", async (e) => {
 
 		const esAceptado = estado === "ACEPTADO";
 
+		if (panelModal) {
+			panelModal.hide();
+		}
+
 		mostrarModalConfirmacion({
-			titulo: esAceptado ? "Aceptar evento" : "Rechazar evento",
-			mensaje: esAceptado ? `¿Confirmás la aceptación del evento #${id}?` : `¿Confirmás el rechazo del evento #${id}?`,
+			titulo: esAceptado ? t("eventoAceptarTitulo") : t("eventoRechazarTitulo"),
+			mensaje: esAceptado
+				? `${t("eventoConfirmarAceptacion")} #${id}?`
+				: `${t("eventoConfirmarRechazo")} #${id}?`,
 			tipo: esAceptado ? "success" : "warning",
-			textoBoton: esAceptado ? "Aceptar" : "Rechazar",
+			textoBoton: esAceptado ? t("eventoBotonAceptar") : t("eventoBotonRechazar"),
+
 			onConfirm: async () => {
 				try {
 					const response = await fetch(`http://localhost:8080/api/admin/eventos/cambiarEstado/${id}?estado=${estado}`, {
@@ -194,7 +80,13 @@ document.addEventListener("click", async (e) => {
 					});
 
 					if (response.ok) {
-						mostrarToast(esAceptado ? "☑️ Evento aceptado correctamente" : "❌ Evento rechazado correctamente", "success");
+
+						mostrarToast(
+							esAceptado
+								? `☑️ ${t("eventoAceptadoCorrectamente")}`
+								: `❌ ${t("eventoRechazadoCorrectamente")}`,
+							"success"
+						);
 
 						// Invalidar cache
 						eventosCache.length = 0;
@@ -204,13 +96,35 @@ document.addEventListener("click", async (e) => {
 							cargarEventos(window.mapInstance, { force: true });
 						}
 
-						new bootstrap.Modal(document.getElementById("adminPanelModal")).show();
+						await initAdminPanel(true);
+
 					} else {
-						mostrarToast(esAceptado ? "❌ No se pudo aceptar el evento" : "❌ No se pudo rechazar el evento", "danger");
+
+						mostrarToast(
+							esAceptado
+								? `❌ ${t("eventoNoSePudoAceptar")}`
+								: `❌ ${t("eventoNoSePudoRechazar")}`,
+							"danger"
+						);
+
 					}
+
 				} catch (err) {
-					mostrarToast(esAceptado ? "Error al aceptar el evento: " + err : "Error al rechazar el evento: " + err, "danger");
+
+					mostrarToast(
+						esAceptado
+							? `${t("eventoErrorAceptarDetalle")} ${err}`
+							: `${t("eventoErrorRechazarDetalle")} ${err}`,
+						"danger"
+					);
+
+				} finally {
+					panelModal.show();
 				}
+			},
+
+			onCancel: () => {
+				panelModal.show();
 			}
 		});
 	}
@@ -225,36 +139,40 @@ document.addEventListener("click", async (e) => {
 				method: "GET",
 				headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
 			});
-			if (!response.ok) { throw new Error("No se pudo obtener el organizador"); }
+
+			if (!response.ok) {
+				throw new Error(t("organizadorErrorObtener"));
+			}
 
 			const org = await response.json();
 
 			abrirModalDetalle({
-				titulo: "Detalles del organizador",
+				titulo: t("organizadorDetalleTitulo"),
 				cuerpoHTML: `
       <div class="text-center">
         <img src="${org.fotoPerfil}" class="img-fluid rounded-circle mb-3" 
              style="width: 120px; height: 120px; object-fit: cover;">
         <h4>${org.nombre} ${org.apellido}</h4>
-        <p><b>Email:</b> ${org.email}</p>
-        <p><b>Teléfono:</b> ${org.telefono}</p>
-        <p><b>Fecha de nacimiento:</b> ${org.fechaNacimiento}</p>
-        <p><b>Organización:</b> ${org.nombreOrganizacion}</p>
-        <p><b>Dirección:</b> ${org.direccionOrganizacion}</p>
-        <p><b>Rol:</b> ${org.rol}</p>
-        <p><b>Registrado el:</b> ${org.fechaRegistro}</p>
-        <p><b>Verificado:</b> ${org.verificado ? "✅ Sí" : "❌ No"}</p>
+        <p><b>${t("organizadorEmail")}:</b> ${org.email}</p>
+        <p><b>${t("organizadorTelefono")}:</b> ${org.telefono}</p>
+        <p><b>${t("organizadorFechaNacimiento")}:</b> ${org.fechaNacimiento}</p>
+        <p><b>${t("organizadorOrganizacion")}:</b> ${org.nombreOrganizacion}</p>
+        <p><b>${t("organizadorDireccion")}:</b> ${org.direccionOrganizacion}</p>
+        <p><b>${t("organizadorRol")}:</b> ${org.rol}</p>
+        <p><b>${t("organizadorRegistradoEl")}:</b> ${org.fechaRegistro}</p>
+        <p><b>${t("organizadorVerificado")}:</b> ${org.verificado ? "✅ " + t("si") : "❌ " + t("no")}</p>
       </div>
     `,
 				botonesHTML: `
       <button class="btn btn-secondary btn-volver-admin">
-        Volver al Panel
+        ${t("volverPanelAdmin")}
       </button>
 			<button class="btn btn-warning btn-verificar-organizador" data-bs-dismiss="modal" data-id="${org.id}" data-estado="${org.verificado}">
-              ${org.verificado ? 'Revocar Verificar Organizador' : 'Verificar Organizador'}
+              ${org.verificado ? t("organizadorRevocarVerificacion") : t("organizadorVerificar")}
             </button>	
     `
 			});
+
 			const panelModal = bootstrap.Modal.getInstance(document.getElementById("adminPanelModal"));
 			if (panelModal) {
 				panelModal.hide();
@@ -277,8 +195,9 @@ document.addEventListener("click", async (e) => {
 
 		} catch (err) {
 			console.error("Error:", err);
-			alert("Error");
+			alert(t("errorGenerico"));
 		}
+
 		return;
 	}
 
@@ -286,11 +205,19 @@ document.addEventListener("click", async (e) => {
 	if (e.target.matches(".btn-verificar-organizador")) {
 		const orgId = e.target.dataset.id;
 		const estado = e.target.dataset.estado === "true";
+
+		if (panelModal) {
+			panelModal.hide();
+		}
+
 		mostrarModalConfirmacion({
-			titulo: estado ? "Revocar verificación" : "Verificar organizador",
-			mensaje: estado ? `¿Confirmas la revocación de la verificación del organizador #${orgId}?` : `¿Confirmas la verificación del organizador #${orgId}?`,
+			titulo: estado ? t("organizadorRevocarVerificacionTitulo") : t("organizadorVerificarTitulo"),
+			mensaje: estado
+				? `${t("organizadorConfirmarRevocarVerificacion")} #${orgId}?`
+				: `${t("organizadorConfirmarVerificacion")} #${orgId}?`,
 			tipo: estado ? "warning" : "success",
-			textoBoton: estado ? "Revocar" : "Verificar",
+			textoBoton: estado ? t("organizadorBotonRevocar") : t("organizadorBotonVerificar"),
+
 			onConfirm: async () => {
 				try {
 					const response = await fetch(`http://localhost:8080/api/admin/organizadores/verificar/${orgId}`, {
@@ -298,7 +225,7 @@ document.addEventListener("click", async (e) => {
 						headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
 					});
 
-					if (!response.ok) throw new Error("No se pudo verificar el organizador");
+					if (!response.ok) throw new Error(t("organizadorErrorVerificar"));
 
 					// Invalidar cache
 					eventosCache.length = 0;
@@ -308,12 +235,29 @@ document.addEventListener("click", async (e) => {
 						cargarEventos(window.mapInstance, { force: true });
 					}
 
-					mostrarToast(estado ? "☑️ Verificación removida correctamente" : "☑️ Organizador verificado correctamente", "success");
+					await initAdminPanel(true);
 
-					new bootstrap.Modal(document.getElementById("adminPanelModal")).show();
+					mostrarToast(
+						estado
+							? `☑️ ${t("organizadorVerificacionRemovidaCorrectamente")}`
+							: `☑️ ${t("organizadorVerificadoCorrectamente")}`,
+						"success"
+					);
+
 				} catch {
-					mostrarToast(estado ? "Error removiendo verificación" : "Error verificando organizador", "danger");
+					mostrarToast(
+						estado
+							? t("organizadorErrorRemoverVerificacion")
+							: t("organizadorErrorVerificando"),
+						"danger"
+					);
+				} finally {
+					panelModal.show();
 				}
+			},
+
+			onCancel: () => {
+				panelModal.show();
 			}
 		});
 	}
@@ -322,11 +266,16 @@ document.addEventListener("click", async (e) => {
 	if (e.target.matches(".btn-eliminar-organizador")) {
 		const orgId = e.target.dataset.organizadorId;
 
+		if (panelModal) {
+			panelModal.hide();
+		}
+
 		mostrarModalConfirmacion({
-			titulo: "Eliminar organizador",
-			mensaje: "¿Eliminar organizador y todos sus eventos?",
+			titulo: t("organizadorEliminarTitulo"),
+			mensaje: t("organizadorEliminarConfirmacion"),
 			tipo: "danger",
-			textoBoton: "Eliminar",
+			textoBoton: t("organizadorBotonEliminar"),
+
 			onConfirm: async () => {
 				try {
 					const resp = await fetch(`http://localhost:8080/api/admin/organizadores/eliminar/${orgId}`, {
@@ -336,7 +285,7 @@ document.addEventListener("click", async (e) => {
 
 					if (!resp.ok) throw new Error();
 
-					mostrarToast("☑️ Organizador y sus eventos eliminados correctamente", "success");
+					mostrarToast(`☑️ ${t("organizadorEliminadoCorrectamente")}`, "success");
 
 					const modalAbierto = document.querySelector(".modal.show");
 					if (modalAbierto) {
@@ -352,19 +301,203 @@ document.addEventListener("click", async (e) => {
 						cargarEventos(window.mapInstance, { force: true });
 					}
 
-					new bootstrap.Modal(document.getElementById("adminPanelModal")).show();
+					await initAdminPanel(true);
+
 				} catch (err) {
 					console.error(err);
-					mostrarToast("Error eliminando organizador", "danger");
+					mostrarToast(t("organizadorErrorEliminar"), "danger");
+				} finally {
+					panelModal.show();
 				}
+			},
+
+			onCancel: () => {
+				panelModal.show();
 			}
 		});
 	}
 
 });
 
+function renderAdminTable(organizadores) {
+	const tbody = document.getElementById("eventosAdminBody");
+
+	tbody.innerHTML = "";
+
+	organizadores.forEach(org => {
+		const orgId = org.organizadorId;
+		const eventos = org.eventos || [];
+
+		const collapseId = `eventos-org-${orgId}`;
+
+		// Fila principal del organizador
+		const trOrg = document.createElement("tr");
+		trOrg.classList.add("table-primary");
+		trOrg.innerHTML = `
+<td colspan="8">
+    <div class="d-flex align-items-center">
+
+        <div class="flex-grow-1 mx-1">
+            <strong>${_escape(org.nombreOrganizador)}</strong><br>
+
+            <span class="text-muted">
+                ${_escape(org.emailOrganizador)}
+            </span><br>
+
+            ${org.verificadoOrganizador
+				? `<span class="badge bg-success">${t("organizadorVerificado")}</span>`
+				: `<span class="badge bg-secondary">${t("organizadorNoVerificado")}</span>`}
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 justify-content-end mx-1">
+            
+            ${org.verificadoOrganizador
+				? `<button class="btn btn-sm btn-warning text-nowrap btn-ver-organizador"
+                        data-organizador-id="${orgId}">
+                        ${t("organizadorBotonRevocar")}
+                    </button>`
+				: `<button class="btn btn-sm btn-success text-nowrap btn-ver-organizador"
+                        data-organizador-id="${orgId}">
+                        ${t("organizadorBotonVerificar")}
+                    </button>`}
+
+            <button class="btn btn-sm btn-danger text-nowrap btn-eliminar-organizador"
+                data-organizador-id="${orgId}">
+                ${t("organizadorBotonEliminar")}
+            </button>
+
+            <button class="btn btn-sm btn-info text-nowrap"
+                data-bs-toggle="collapse"
+                data-bs-target="#${collapseId}">
+                ${t("tablaAdminEventos")} (${eventos.length})
+            </button>
+
+        </div>
+    </div>
+</td>
+`;
+		tbody.appendChild(trOrg);
+
+		const trEventos = document.createElement("tr");
+		trEventos.innerHTML = `
+<td colspan="8" class="p-0">
+<div id="${collapseId}" class="collapse">
+
+${eventos.length === 0 ? `
+<div class="p-3 text-center text-muted">
+${t("organizadorSinEventos")}
+</div>
+` : `
+<table class="table table-sm table-bordered m-0">
+<thead>
+<tr class="table-light">
+<th>${t("tablaAdminId")}</th>
+<th>${t("tablaAdminTitulo")}</th>
+<th>${t("tablaAdminCategoria")}</th>
+<th>${t("tablaAdminFechas")}</th>
+<th>${t("tablaAdminEstado")}</th>
+<th>${t("tablaAdminAcciones")}</th>
+</tr>
+</thead>
+
+<tbody>
+${eventos.map(ev => {
+
+			const fi = ev.fechaInicio
+				? ev.fechaInicio.replace("T", " ").slice(0, 16)
+				: "—";
+
+			const ff = ev.fechaFin
+				? ev.fechaFin.replace("T", " ").slice(0, 16)
+				: "—";
+
+			return `
+<tr>
+
+<td>${_escape(ev.id)}</td>
+
+<td>
+<strong>${_escape(ev.titulo)}</strong>
+</td>
+
+<td style="min-width:140px">
+${_escape(ev.categoria || "—")}
+</td>
+
+<td style="min-width:180px">
+<strong>${t("eventoInicio")}:</strong><br>${fi}
+<br>
+<strong>${t("eventoFin")}:</strong><br>${ff}
+</td>
+
+<td>
+${renderEstadoEvento(ev.estado)}
+</td>
+
+<td>
+
+<div class="d-flex flex-column gap-2 align-items-center">
+
+<div class="d-flex justify-content-center gap-1">
+
+<div class="d-flex flex-wrap gap-1">
+${renderEstadoEventoAdmin(ev)}
+</div>
+
+<div class="d-flex flex-wrap gap-1">
+
+<button class="btn btn-sm btn-outline-primary fw-bold btn-editar-evento"
+data-bs-toggle="modal"
+data-bs-target="#nuevoEventoModal"
+data-id="${ev.id}"
+data-origen="admin">
+
+${t("eventoBotonEditar")}
+
+</button>
+
+<button class="btn btn-sm btn-outline-danger fw-bold btn-eliminar-evento"
+data-id="${ev.id}">
+
+${t("eventoBotonEliminar")}
+
+</button>
+
+</div>
+</div>
+</div>
+
+</td>
+</tr>
+`;
+
+		}).join("")}
+
+</tbody>
+</table>
+`}
+
+</div>
+</td>
+`;
+
+		tbody.appendChild(trEventos);
+	});
+}
+
 // helpers seguros (escape)
 function escapeHtml(str) {
 	if (!str) return "";
 	return String(str).replace(/[&<>"']/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s]));
 }
+
+const _escape = (str) => {
+	if (typeof escapeHtml === "function") return escapeHtml(str);
+	if (str === null || str === undefined) return "";
+	return String(str)
+		.replaceAll("&", "&amp;")
+		.replaceAll("<", "&lt;")
+		.replaceAll(">", "&gt;")
+		.replaceAll('"', "&quot;")
+		.replaceAll("'", "&#039;");
+};

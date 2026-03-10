@@ -1,7 +1,49 @@
 html, body {
   height: 100%;
   margin: 0;
-  padding: 0;
+}
+
+body {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  grid-template-rows: 60px 1fr;
+  grid-template-areas:
+    "sidebar header"
+    "sidebar map";
+  height: 100vh;
+  overflow-x: hidden;
+}
+
+.buscador-wrapper {
+  flex: 0 0 400px;   /* ancho fijo en desktop */
+  max-width: 100%;
+}
+
+@media (max-width: 768px) {
+  .buscador-wrapper {
+    flex: 1;         /* en móvil ocupa lo disponible */
+  }
+}
+
+.btn-filtros {
+  padding: 8px 14px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+}
+
+.btn-filtros:hover {
+  background-color: #f1f3f5;
+}
+.btn-filtros {
+  transition: background-color 0.2s ease;
+}
+
+/* Layout principal */
+.app-container {
+  display: flex;
+  height: 100vh;
 }
 
 .col-evento {
@@ -34,14 +76,17 @@ html, body {
 
 /* --- Sidebar --- */
 .sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  width: 250px;
+  grid-area: sidebar;
   background-color: #212529;
   color: white;
-  z-index: 1000;
+}
+
+header {
+  grid-area: header;
+}
+
+#map {
+  grid-area: map;
 }
 
 .sidebar a {
@@ -71,82 +116,86 @@ html, body {
 }
 
 /* --- Contenido principal (mapa) --- */
-#map {
-  position: absolute;
-  top: 60px; /* altura del navbar */
-  left: 250px; /* ancho del sidebar */
-  right: 0;
-  bottom: 0;
+
+
+.btn-gps {
+	position: fixed;
+	bottom: 30px;
+	right: 50px;
+	z-index: 1000;
+
+	width: 55px;
+	height: 55px;
+
+	border-radius: 50%;
+	border: none;
+
+	background-color: white;
+	box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	font-size: 22px;
+	color: #0d6efd;
+	cursor: pointer;
+	transition: transform 0.2s ease;
+}
+
+.btn-gps:hover {
+	transform: scale(1.1);
 }
 
 /* Responsive */
-@media (max-width: 768px) {
-  /* 🔹 Sidebar se transforma en barra inferior fija */
+@media (max-width: 767px) {
+
+  body {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "header"
+      "map";
+  }
+
   .sidebar {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 60px;
-    background-color: #212529;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    flex-direction: row;
-    z-index: 1001;
-    padding: 0;
-  }
-
-  .sidebar h5 {
-    display: none; /* Ocultamos el título */
-  }
-
-  .sidebar a {
-    color: #adb5bd;
-    text-decoration: none;
-    text-align: center;
-    padding: 5px;
-    font-size: 0.9rem;
-  }
-
-  .sidebar a:hover {
-    background-color: transparent;
-    color: #fff;
-  }
-
-  /* 🔹 Header (barra superior con buscador) */
-  header nav {
     top: 0;
-    left: 0;
-    width: 100%;
-    position: fixed;
-    flex-direction: column;
-    align-items: center;
-    background-color: #f8f9fa;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
+    left: -260px; /* escondido */
+    width: 240px;
+    height: 100vh;
+    z-index: 2000;
+    transition: left 0.3s ease;
   }
 
-  #barra-busqueda {
-    width: 100%;
-    padding: 10px;
-    justify-content: center;
-    background-color: #ffffffee;
+  .sidebar.open {
+    left: 0; /* aparece */
   }
 
-  #pac-input {
-    width: 90%;
-    max-width: none;
-  }
+}
 
-  /* 🔹 Ajuste del mapa (queda entre ambas barras) */
-  #map {
-    position: absolute;
-    top: 60px;         /* debajo del buscador */
-    bottom: 60px;      /* arriba de la barra inferior */
-    left: 0;
-    right: 0;
-  }
+.leaflet-container {
+  z-index: 1;
+}
+
+.no-scroll {
+  overflow: hidden;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0; /* ocupa toda la pantalla */
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease;
+  z-index: 1500;
+}
+
+/* Cuando esté activo */
+.overlay.active {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* --- Barra superior --- */
@@ -179,9 +228,9 @@ header nav {
 
 /* Resultados búsqueda */
 .search-results {
-  position: absolute;
+  position: fixed;
   top: 80px;
-  right: 16px;
+  right: -320px;
   width: 300px;
   max-height: 70vh;
   overflow-y: auto;
@@ -189,7 +238,6 @@ header nav {
   border-radius: 10px;
   box-shadow: 0 8px 24px rgba(0,0,0,.15);
   z-index: 1000;
-  transform: translateX(100%);
 	opacity: 0;
 	visibility: hidden;
 	transition:
@@ -215,7 +263,7 @@ header nav {
 }
 
 .search-results.open {
-	transform: translateX(0);
+	right: 16px;
 	opacity: 1;
 	visibility: visible;
 }
@@ -282,8 +330,21 @@ header nav {
 	animation: searchIntro 0.45s cubic-bezier(.22,1,.36,1);
 }
 
+@media (max-width: 767px) {
+  .search-results {
+    width: 100%;
+    right: -100%;
+    top: 60px;
+    border-radius: 0;
+  }
 
-@media (max-width: 768px) {
+  .search-results.open {
+    right: 0;
+  }
+}
+
+
+@media (max-width: 767px) {
   header nav {
     left: 0;
     width: 100%;
@@ -309,4 +370,31 @@ header nav {
   transform: scale(1.18);
 }
 
+.dropdown-menu .btn-idioma{
+	transition: background-color 0.2s ease, transform 0.15s ease;
+	border-radius: 6px;
+}
 
+/* hover */
+.dropdown-menu .btn-idioma:hover{
+	background-color: rgb(208, 213, 217);
+}
+
+/* click */
+.dropdown-menu .btn-idioma:active{
+	transform: scale(0.97);
+}
+
+.dropdown-menu{
+	opacity: 0;
+	transform: translateY(-8px);
+	transition: all 0.2s ease;
+	display: block;
+	visibility: hidden;
+}
+
+.dropdown-menu.show{
+	opacity: 1;
+	transform: translateY(0);
+	visibility: visible;
+}

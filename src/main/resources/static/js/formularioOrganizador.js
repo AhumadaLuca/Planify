@@ -2,16 +2,17 @@
 import { mostrarToast } from './toastsGenerico.js';
 import { actualizarMenuUsuario } from './AuthUI.js';
 import { limpiarFormularioGenerico } from "./limpiezaFormGenerico.js";
+import { t } from "./i18n.js";
 
 export function initFormularioOrganizador() {
 
 	document.getElementById("registroModal").addEventListener("hidden.bs.modal", () => {
 		limpiarFormularioGenerico("#formRegistro", {
 			idTitulo: "registroModalTitulo",
-			textoTitulo: "Registro - Organizador",
+			textoTitulo: t("registroOrganizadorTitulo"),
 			idBoton: "btnRegistroOrganizador",
-			textoBoton: "Registro",
-			previewImagenSelector: null   // No tenés preview, así que lo dejamos null
+			textoBoton: t("registroBotonRegistro"),
+			previewImagenSelector: null
 		});
 	});
 	
@@ -20,7 +21,6 @@ export function initFormularioOrganizador() {
 
 	const errBox = document.getElementById("registroError");
 
-	// helpers
 	function showFieldError(inputId, msg) {
 		const input = document.getElementById(inputId);
 		const error = document.getElementById("error" + inputId.replace("reg", ""));
@@ -39,7 +39,6 @@ export function initFormularioOrganizador() {
 		error.classList.add("d-none");
 	}
 
-	// escuchar inputs una sola vez (no dentro del submit)
 	form.addEventListener("input", (e) => {
 		if (e && e.target && e.target.id) clearFieldError(e.target.id);
 		if (errBox) {
@@ -51,7 +50,6 @@ export function initFormularioOrganizador() {
 	form.addEventListener("submit", async function(e) {
 		e.preventDefault();
 
-		// capturar campos
 		const nombre = document.getElementById("regNombre")?.value.trim() || "";
 		const apellido = document.getElementById("regApellido")?.value.trim() || "";
 		const email = document.getElementById("regEmail")?.value.trim() || "";
@@ -66,56 +64,51 @@ export function initFormularioOrganizador() {
 
 		let hasError = false;
 
-		// validaciones
-		if (!nombre) { showFieldError("regNombre", "Ingrese su nombre"); hasError = true; }
-		if (!apellido) { showFieldError("regApellido", "Ingrese su apellido"); hasError = true; }
-		if (!email || !email.includes("@")) { showFieldError("regEmail", "Email inválido"); hasError = true; }
-		if (password.length < 6) { showFieldError("regPassword", "La contraseña debe tener mínimo 6 caracteres"); hasError = true; }
-		if (password !== password2) { showFieldError("regPassword2", "Las contraseñas no coinciden"); hasError = true; }
+		if (!nombre) { showFieldError("regNombre", t("registroNombreObligatorio")); hasError = true; }
+		if (!apellido) { showFieldError("regApellido", t("registroApellidoObligatorio")); hasError = true; }
+		if (!email || !email.includes("@")) { showFieldError("regEmail", t("registroEmailInvalido")); hasError = true; }
+		if (password.length < 6) { showFieldError("regPassword", t("registroPasswordMinimo")); hasError = true; }
+		if (password !== password2) { showFieldError("regPassword2", t("registroPasswordsNoCoinciden")); hasError = true; }
 
-		// fechaNacimiento: primero validar que exista y sea una fecha válida
 		if (!fechaNacimiento) {
-			showFieldError("regFechaNacimiento", "Ingrese fecha de nacimiento");
+			showFieldError("regFechaNacimiento", t("registroFechaNacimientoObligatoria"));
 			hasError = true;
 		} else {
 			const userDate = new Date(fechaNacimiento);
 			if (isNaN(userDate.getTime())) {
-				showFieldError("regFechaNacimiento", "Fecha inválida");
+				showFieldError("regFechaNacimiento", t("registroFechaInvalida"));
 				hasError = true;
 			} else {
 				const adultLimit = new Date();
 				adultLimit.setFullYear(adultLimit.getFullYear() - 18);
 				if (userDate > adultLimit) {
-					showFieldError("regFechaNacimiento", "Debes ser mayor de 18 años para registrarte");
+					showFieldError("regFechaNacimiento", t("registroDebeSerMayorEdad"));
 					hasError = true;
 				}
 			}
 		}
 
-		// validación de imagen opcional
 		if (imagen) {
 			const validExt = ["image/jpeg", "image/png", "image/webp"];
 			if (!validExt.includes(imagen.type)) {
-				showFieldError("regImagenPerfil", "Formato de imagen inválido. Usa JPG, PNG o WEBP");
+				showFieldError("regImagenPerfil", t("registroFormatoImagenInvalido"));
 				hasError = true;
 			}
 			if (imagen.size > 2 * 1024 * 1024) {
-				showFieldError("regImagenPerfil", "La imagen no debe superar los 2MB");
+				showFieldError("regImagenPerfil", t("registroImagenTamano"));
 				hasError = true;
 			}
-			// validarDimensionesImagen debe existir y devolver boolean
 			if (typeof validarDimensionesImagen === "function") {
 				const ok = await validarDimensionesImagen(imagen);
-				if (!ok) { showFieldError("regImagenPerfil", "La imagen debe ser mínimo 150x150 pixeles"); hasError = true; }
+				if (!ok) { showFieldError("regImagenPerfil", t("registroImagenDimensiones")); hasError = true; }
 			}
 		}
 
 		if (hasError) {
-			mostrarToast("Hay errores en los datos, por favor revísalos", "danger");
+			mostrarToast(t("registroErroresFormulario"), "danger");
 			return;
 		}
 
-		// armar payload (no incluir telefono si no existe en HTML)
 		const organizador = {
 			nombre,
 			apellido,
@@ -129,9 +122,8 @@ export function initFormularioOrganizador() {
 
 		const formData = new FormData();
 		formData.append("organizador", new Blob([JSON.stringify(organizador)], { type: "application/json" }));
-		if (imagen) formData.append("fotoPerfil", imagen); // solo si existe
+		if (imagen) formData.append("fotoPerfil", imagen);
 
-		// envío
 		try {
 			const res = await fetch("http://localhost:8080/api/auth/registro", {
 				method: "POST",
@@ -140,25 +132,23 @@ export function initFormularioOrganizador() {
 
 			if (!res.ok) {
 				const msg = await res.text().catch(() => null);
-				mostrarToast("Error al registrar: " + msg, "danger");
+				mostrarToast(t("registroErrorRegistrar") + msg, "danger");
 				return;
 			}
 
-			// Reseteamos formulario, cerramos modal y avisamos registro exitoso
 			form.reset();
 			bootstrap.Modal.getInstance(document.getElementById("registroModal")).hide();
-			mostrarToast("Registro exitoso 🎉", "success");
+			mostrarToast(t("registroExitoso"), "success");
+
 			const modalLogin = new bootstrap.Modal(document.getElementById("loginModal"));
 			modalLogin.show();
 
-
 		} catch (error) {
 			console.error("Error en fetch registro: ", error);
-			mostrarToast("Error de conexión con el servidor", "danger");
+			mostrarToast(t("registroErrorConexion"), "danger");
 		}
 	});
 
-	//Limpiamos login
 	document.getElementById("loginModal").addEventListener("show.bs.modal", () => {
 		const form = document.getElementById("formLogin");
 		if (form) form.reset();
@@ -177,13 +167,11 @@ export function initFormularioOrganizador() {
 		const password = document.getElementById("loginPassword").value.trim();
 		const err = document.getElementById("loginError");
 
-		// Reset errores
 		err.classList.add("d-none");
 		err.innerText = "";
 
-		// Validaciones básicas
 		if (!email || !password) {
-			err.innerText = "Completa todos los campos";
+			err.innerText = t("loginCompletarCampos");
 			err.classList.remove("d-none");
 			return;
 		}
@@ -196,28 +184,25 @@ export function initFormularioOrganizador() {
 			});
 
 			if (!resp.ok) {
-				mostrarToast("Credenciales incorrectas", "danger");
+				mostrarToast(t("loginCredencialesIncorrectas"), "danger");
 				return;
 			}
 
 			const data = await resp.json();
 
-			// ⬇Guardamos lo que devuelve el backend
 			localStorage.setItem("id", data.id);
 			localStorage.setItem("token", data.token);
 			localStorage.setItem("nombre", data.nombre);
 			localStorage.setItem("rol", data.rol);
 
-			// Cerrar modal
 			bootstrap.Modal.getInstance(document.getElementById("loginModal")).hide();
 
-			// Avisamos Login y actualizamos UI
-			mostrarToast("¡Bienvenido, " + data.nombre + "!", "success");
+			mostrarToast(t("loginBienvenida") + data.nombre + "!", "success");
 			actualizarMenuUsuario();
 
 		} catch (error) {
 			console.error("Error en login:", error);
-			mostrarToast("Error al iniciar sesión. Intenta más tarde.", "danger");
+			mostrarToast(t("loginErrorServidor"), "danger");
 		}
 	});
 

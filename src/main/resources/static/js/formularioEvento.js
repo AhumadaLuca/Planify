@@ -5,22 +5,49 @@ import { mostrarToast } from './toastsGenerico.js';
 import { mostrarModalConfirmacion } from "./confirmarGenerico.js";
 import { limpiarFormularioGenerico } from "./limpiezaFormGenerico.js";
 import { detectarRedSocialPorTipo, normalizarUrl, obtenerIconoPorTipo, validarUrl } from "./redesSociales.js";
+import { panelModal, initAdminPanel } from "./adminPanel.js";
+import { t } from "./i18n.js";
+
 
 export function initFormularioEvento() {
+	
+	const form = document.getElementById("formEvento");
 
 	document.getElementById("nuevoEventoModal").addEventListener("hidden.bs.modal", () => {
+		
+		
+    	const origen = form.dataset.origen;
+		
 		console.log("🧹 Cerrando MODAL — limpiando formulario de evento...");
 		limpiarFormularioGenerico("#formEvento", {
 			idTitulo: "tituloModalEvento",
-			textoTitulo: "Nuevo Evento",
+			textoTitulo: t("eventoNuevoTitulo"),
 			idBoton: "btnGuardarEvento",
-			textoBoton: "Crear Evento",
+			textoBoton: t("eventoCrearEvento"),
 			previewImagenSelector: "#previewImagenEvento"
 		});
-	});
+		
+		// 🔥 SI VENÍA DEL ADMIN → REABRIR PANEL
+    if (origen === "admin") {
+        const adminModalEl = document.getElementById("adminPanelModal");
+        if (adminModalEl) {
+            bootstrap.Modal.getOrCreateInstance(adminModalEl).show();
+        }
+    }
 
-	const form = document.getElementById("formEvento");
-	if (!form) return;
+    // 🔥 SI VENÍA DEL ORGANIZADOR → REFRESCAR LISTA
+    if (origen === "organizador") {
+        if (typeof verEventosOrganizador === "function") {
+            verEventosOrganizador();
+        }
+    }
+    
+    delete form.dataset.origen;
+    if (!form) return;
+		
+	});	
+	
+
 
 	// Contenedores DOM (se asignan en initRedesUI)
 	let redesWrapper = null;
@@ -77,7 +104,8 @@ export function initFormularioEvento() {
 		if (!redesWrapper) return;
 		const count = redesWrapper.querySelectorAll('.red-row').length;
 		if (count >= MAX_LINKS) {
-			alert(`Máximo ${MAX_LINKS} links permitidos.`);
+			// uso de interpolación con t()
+			alert(t("eventoMaxLinks", { max: MAX_LINKS }));
 			return;
 		}
 
@@ -97,8 +125,8 @@ export function initFormularioEvento() {
 		const input = document.createElement('input');
 		input.type = 'url';
 		input.className = 'form-control red-url-input';
-		input.placeholder = 'https://ejemplo.com/mi-perfil';
-		input.setAttribute('aria-label', 'Link de red social o página web');
+		input.placeholder = t("eventoPlaceholderLink");
+		input.setAttribute('aria-label', t("eventoAriaLink"));
 
 		const hiddenId = document.createElement('input');
 		hiddenId.type = 'hidden';
@@ -129,7 +157,7 @@ export function initFormularioEvento() {
 		const btnRemove = document.createElement('button');
 		btnRemove.type = 'button';
 		btnRemove.className = 'btn btn-link btn-remove-link p-1 text-danger';
-		btnRemove.title = 'Eliminar link';
+		btnRemove.title = t("eventoEliminarLink");
 		btnRemove.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M9 3v1H4v2h1v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1V4h-5V3H9zm2 4h2v11h-2V7z"/></svg>`;
 		btnRemove.addEventListener('click', () => row.remove());
 
@@ -156,7 +184,8 @@ export function initFormularioEvento() {
 			if (!raw) continue;
 			const url = normalizarUrl(raw);
 			if (!validarUrl(url)) {
-				throw new Error(`URL inválida: ${raw}`);
+				// lanzo error con texto traducible
+				throw new Error(t("eventoUrlInvalidaDetalle", { url: raw }));
 			}
 			redes.push({
 				id: idInput && idInput.value ? Number(idInput.value) : null,
@@ -187,10 +216,11 @@ export function initFormularioEvento() {
 		e.preventDefault();
 
 		const esEdicion = !!form.dataset.idEvento;
+		const origen = form.dataset.origen;
 
 		const btnGuardar = document.querySelector("#btnGuardarEvento");
 		btnGuardar.disabled = true;
-		btnGuardar.textContent = "Guardando...";
+		btnGuardar.textContent = t("eventoGuardando");
 		try {
 			// Capturar campos
 			const titulo = document.getElementById("eventoTitulo").value.trim();
@@ -209,34 +239,34 @@ export function initFormularioEvento() {
 			let hasError = false;
 
 			// Validaciones principales
-			if (!titulo) { showFieldError("eventoTitulo", "El título es obligatorio"); hasError = true; }
-			if (!descripcion) { showFieldError("eventoDescripcion", "La descripción es obligatoria"); hasError = true; }
+			if (!titulo) { showFieldError("eventoTitulo", t("eventoTituloObligatorio")); hasError = true; }
+			if (!descripcion) { showFieldError("eventoDescripcion", t("eventoDescripcionObligatoria")); hasError = true; }
 
-			if (isNaN(categoriaId)) { showFieldError("eventoCategoriaId", "Seleccione una categoria"); hasError = true; }
+			if (isNaN(categoriaId)) { showFieldError("eventoCategoriaId", t("eventoSeleccioneCategoria")); hasError = true; }
 
 			const now = new Date();
 			const fechaInicioDate = new Date(fechaInicio);
 			const fechaFinDate = new Date(fechaFin);
 			if (isNaN(fechaInicioDate) || isNaN(fechaFinDate)) {
-				showFieldError("eventoFechaInicio", "Debes ingresar fechas válidas");
+				showFieldError("eventoFechaInicio", t("eventoFechasInvalidas"));
 				hasError = true;
 			} else {
-				if (fechaInicioDate < now) { showFieldError("eventoFechaInicio", "La fecha de inicio no puede estar en el pasado"); hasError = true; }
-				if (fechaFinDate <= fechaInicioDate) { showFieldError("eventoFechaFin", "La fecha de fin debe ser posterior a la fecha de inicio"); hasError = true; }
+				if (fechaInicioDate < now) { showFieldError("eventoFechaInicio", t("eventoFechaInicioPasado")); hasError = true; }
+				if (fechaFinDate <= fechaInicioDate) { showFieldError("eventoFechaFin", t("eventoFechaFinPosterior")); hasError = true; }
 			}
 
-			if (!ubicacion) { showFieldError("eventoDireccion", "La dirección es obligatoria"); hasError = true; }
-			if (isNaN(latitud) || isNaN(longitud)) { showFieldError("eventoDireccion", "Selecciona una ubicación en el mapa"); hasError = true; }
+			if (!ubicacion) { showFieldError("eventoDireccion", t("eventoDireccionObligatoria")); hasError = true; }
+			if (isNaN(latitud) || isNaN(longitud)) { showFieldError("eventoDireccion", t("eventoSeleccionarUbicacionMapa")); hasError = true; }
 
 			if (precio !== "" && (isNaN(precio) || precio < 0)) {
-				showFieldError("eventoPrecio", "El precio debe ser un número válido o vacío si es gratis");
+				showFieldError("eventoPrecio", t("eventoPrecioNumeroValido"));
 				hasError = true;
 			}
 
 			// Validación URL
 			if (urlVentaExterna) {
 				try { new URL(urlVentaExterna); }
-				catch { showFieldError("eventoUrlVentaExterna", "La URL externa no es válida"); hasError = true; }
+				catch { showFieldError("eventoUrlVentaExterna", t("eventoUrlInvalida")); hasError = true; }
 			}
 
 			// Validación imagen
@@ -246,17 +276,17 @@ export function initFormularioEvento() {
 				const validExt = ["image/jpeg", "image/png", "image/webp"];
 
 				if (!validExt.includes(imagenUrl.type)) {
-					showFieldError("eventoImagen", "Formato de imagen inválido (JPG, PNG o WEBP)");
+					showFieldError("eventoImagen", t("eventoFormatoImagenInvalido"));
 					hasError = true;
 				}
 				if (imagenUrl.size > 2 * 1024 * 1024) {
-					showFieldError("eventoImagen", "La imagen no debe superar los 2MB");
+					showFieldError("eventoImagen", t("eventoImagenTamano"));
 					hasError = true;
 				}
 				const ok = await validarDimensionesImagen(imagenUrl);
-				if (!ok) { showFieldError("eventoImagen", "La imagen debe ser mínimo 150x150 pixeles"); hasError = true; }
+				if (!ok) { showFieldError("eventoImagen", t("eventoImagenDimensiones")); hasError = true; }
 			} else if (!esEdicion) {
-				showFieldError("eventoImagen", "Debe ingresar una imagen obligatoriamente del evento");
+				showFieldError("eventoImagen", t("eventoImagenObligatoria"));
 				hasError = true;
 			}
 
@@ -277,7 +307,7 @@ export function initFormularioEvento() {
 					alert(err.message);
 				}
 				btnGuardar.disabled = false;
-				btnGuardar.textContent = esEdicion ? "Guardar Cambios" : "Crear Evento";
+				btnGuardar.textContent = esEdicion ? t("eventoGuardarCambios") : t("eventoCrearEvento");
 				return;
 			}
 
@@ -325,9 +355,9 @@ export function initFormularioEvento() {
 			});
 
 			if (!resp.ok) {
-				throw new Error("Error al guardar el evento");
+				throw new Error(t("eventoErrorGuardar"));
 			} else {
-				mostrarToast(idEvento ? "Evento actualizado ✅" : "Evento creado ✅", "success");
+				mostrarToast(idEvento ? t("eventoActualizado") : t("eventoCreado"), "success");
 
 				// Limpia
 				form.reset();
@@ -337,12 +367,12 @@ export function initFormularioEvento() {
 
 				// Limpiar el formulario
 
-				delete formEvento.dataset.idEvento;
+				delete form.dataset.idEvento;
 				const modalLabel = document.querySelector("#nuevoEventoModalLabel");
 				const btnGuardar = document.querySelector("#btnGuardarEvento");
 
-				if (modalLabel) modalLabel.textContent = "Nuevo Evento";
-				if (btnGuardar) btnGuardar.textContent = "Crear Evento";
+				if (modalLabel) modalLabel.textContent = t("eventoNuevoTitulo");
+				if (btnGuardar) btnGuardar.textContent = t("eventoCrearEvento");
 
 				// Invalidar cache
 				eventosCache.length = 0;
@@ -351,16 +381,29 @@ export function initFormularioEvento() {
 				if (window.mapInstance) {
 					cargarEventos(window.mapInstance, { force: true });
 				}
+				
+				if (origen === "admin") {
+					
+					await initAdminPanel(true);
+					
+					if (panelModal) panelModal.show();
+				}
+				else if (origen === "organizador") {
+					if (typeof verEventosOrganizador === "function") {
+						verEventosOrganizador();
+					}
+				}
+
 			}
 		} catch (err) {
 			console.error("❌ Error al guardar:", err);
-			alert("Error al guardar el evento: " + err.message);
+			alert(t("eventoErrorGuardarDetalle") + err.message);
 		} finally {
 			const btnGuardar = document.querySelector("#btnGuardarEvento");
 			btnGuardar.disabled = false;
 
 			const idEvento = form.dataset.idEvento;
-			btnGuardar.textContent = idEvento ? "Guardar Cambios" : "Crear Evento";
+			btnGuardar.textContent = idEvento ? t("eventoGuardarCambios") : t("eventoCrearEvento");
 		}
 	});
 
@@ -374,13 +417,17 @@ export function initFormularioEvento() {
 		}
 
 		const id = button.dataset.id;
+		const origen = button.dataset.origen;
 		if (!id) return;
+
+		const form = document.getElementById("formEvento");
+		form.dataset.origen = origen;
 
 		try {
 			const response = await fetch(`http://localhost:8080/api/eventos/${id}`);
 
 			if (!response.ok) {
-				throw new Error("No se pudo obtener el evento");
+				throw new Error(t("eventoErrorObtener"));
 			}
 			const evento = await response.json();
 
@@ -427,14 +474,15 @@ export function initFormularioEvento() {
 			form.dataset.idEvento = evento.id;
 
 			// 📝 Cambiar título del modal y texto del botón
-			document.querySelector("#tituloModalEvento").textContent = "Editar Evento";
-			document.querySelector("#btnGuardarEvento").textContent = "Guardar Cambios";
+			document.querySelector("#tituloModalEvento").textContent = t("eventoEditarTitulo");
+			document.querySelector("#btnGuardarEvento").textContent = t("eventoGuardarCambios");
+
 
 
 
 		} catch (error) {
 			console.error("Error al cargar evento:", error);
-			alert("No se pudo cargar la información del evento");
+			alert(t("eventoNoCargoInfo"));
 		}
 
 	});
@@ -448,11 +496,15 @@ export function initFormularioEvento() {
 			const eventoId = e.target.dataset.id;
 			if (!eventoId) return;
 
+			if (panelModal) {
+				panelModal.hide();
+			}
+
 			mostrarModalConfirmacion({
-				titulo: "Eliminar evento",
-				mensaje: `¿Seguro que deseas eliminar el evento #${eventoId}?`,
+				titulo: t("eventoEliminarTitulo"),
+				mensaje: `${t("eventoEliminarConfirmacion")} #${eventoId}?`,
 				tipo: "danger",
-				textoBoton: "Eliminar",
+				textoBoton: t("eventoBotonEliminar"),
 				onConfirm: async () => {
 					try {
 						const response = await fetch(
@@ -465,9 +517,9 @@ export function initFormularioEvento() {
 							}
 						);
 
-						if (!response.ok) throw new Error("No se pudo eliminar el evento");
+						if (!response.ok) throw new Error(t("eventoErrorEliminar"));
 
-						mostrarToast("✅ Evento eliminado correctamente", "success");
+						mostrarToast(t("eventoEliminadoCorrectamente"), "success");
 
 						// Invalidar cache
 						eventosCache.length = 0;
@@ -476,18 +528,25 @@ export function initFormularioEvento() {
 						if (window.mapInstance) {
 							cargarEventos(window.mapInstance, { force: true });
 						}
+						
+						await initAdminPanel(true);
 
 						// Recargar lista de eventos del organizador
 						if (typeof verEventosOrganizador === "function") {
 							verEventosOrganizador();
-						}else{
-							new bootstrap.Modal(document.getElementById("adminPanelModal")).show();
 						}
 
 					} catch (error) {
 						console.error("Error al eliminar evento:", error);
-						mostrarToast("❌ Ocurrió un error al intentar eliminar el evento", "danger");
+						mostrarToast(t("eventoErrorEliminarMostrar"), "danger");
+					} finally {
+						if (panelModal)
+							panelModal.show();
 					}
+				},
+				onCancel: () => {
+					if (panelModal)
+						panelModal.show();
 				}
 			});
 		}

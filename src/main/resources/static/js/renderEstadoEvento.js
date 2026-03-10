@@ -1,12 +1,14 @@
+import { t } from "./i18n.js";
+
 export function renderEstadoEvento(estado) {
   switch (estado) {
     case "ACEPTADO":
-      return `<span class="badge bg-success">ACEPTADO</span>`;
+      return `<span class="badge bg-success">${t("estadoEventoAceptado")}</span>`;
     case "RECHAZADO":
-      return `<span class="badge bg-danger">RECHAZADO</span>`;
+      return `<span class="badge bg-danger">${t("estadoEventoRechazado")}</span>`;
     case "PENDIENTE":
     default:
-      return `<span class="badge bg-warning text-dark">PENDIENTE</span>`;
+      return `<span class="badge bg-warning text-dark">${t("estadoEventoPendiente")}</span>`;
   }
 }
 
@@ -15,33 +17,33 @@ export function renderEstadoEventoAdmin(ev) {
 
     case "PENDIENTE":
       return `
-        <button class="btn btn-sm btn-outline-success btn-cambiar-estado-evento"
+        <button class="btn btn-sm btn-outline-success fw-bold btn-cambiar-estado-evento"
           data-id="${ev.id}"
           data-estado="ACEPTADO">
-          <strong>Aceptar<strong>
+          ${t("eventoAceptar")}
         </button>
-        <button class="btn btn-sm btn-outline-warning btn-cambiar-estado-evento"
+        <button class="btn btn-sm btn-outline-warning fw-bold btn-cambiar-estado-evento"
           data-id="${ev.id}"
           data-estado="RECHAZADO">
-          <strong>Rechazar<strong>
+          ${t("eventoRechazar")}
         </button>
       `;
 
     case "ACEPTADO":
       return `
-        <button class="btn btn-sm btn-outline-warning btn-cambiar-estado-evento"
+        <button class="btn btn-sm btn-outline-warning fw-bold btn-cambiar-estado-evento"
           data-id="${ev.id}"
           data-estado="RECHAZADO">
-          <strong>Rechazar<strong>
+          ${t("eventoRechazar")}
         </button>
       `;
 
     case "RECHAZADO":
       return `
-        <button class="btn btn-sm btn-outline-success btn-cambiar-estado-evento"
+        <button class="btn btn-sm btn-outline-success fw-bold btn-cambiar-estado-evento"
           data-id="${ev.id}"
           data-estado="ACEPTADO">
-          <strong>Aceptar<strong>
+          ${t("eventoAceptar")}
         </button>
       `;
 

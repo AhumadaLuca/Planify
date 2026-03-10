@@ -5,6 +5,7 @@ import com.eventos.eventos_app.services.EventoServicio;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -59,9 +60,12 @@ public class EventoController {
 
 	// READ: Todos los eventos
 	@GetMapping
-	public ResponseEntity<List<Evento>> listarEventos() {
-		List<Evento> eventos = eventoServicio.obtenerTodos();
-		return ResponseEntity.ok(eventos);
+	public ResponseEntity<List<EventoResponseDTO>> listarEventos() {
+		List<EventoResponseDTO> eventos = eventoServicio.obtenerTodos();
+	    return ResponseEntity
+	            .ok()
+	            .cacheControl(CacheControl.noCache())
+	            .body(eventos);
 	}
 
 	@GetMapping("/mis-eventos")

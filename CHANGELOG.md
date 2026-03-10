@@ -3,6 +3,60 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 
 ---
 
+## [v1.2.0] - 2026-03-10
+
+### Añadido
+- Integración inicial de geolocalización (GPS) para centrar el mapa en la ubicación del usuario.
+- Incorporación de funciones de control del estado del GPS:
+  - `estaGPSActivo()` para verificar si el seguimiento está activo.
+  - `centrarEnUsuario()` para recentrar manualmente el mapa.
+- Botón GPS con comportamiento inteligente:
+  - Activa el seguimiento si el GPS no está activo.
+  - Re-centra la vista si el seguimiento ya se encuentra activo.
+- Implementación de un sistema de caché con TTL para la carga de eventos desde `/api/eventos`, utilizando `lastFetch` y `CACHE_TTL` para validar la vigencia de los datos.
+
+### Mejorado
+- Geolocalización y mapa:
+  - Configuración optimizada de `watchPosition` utilizando `enableHighAccuracy`, `timeout` y `maximumAge`.
+  - Animación suave al recentrar el mapa (`animate: true`).
+  - Mejora de la nitidez del mapa en pantallas móviles mediante `detectRetina: true` en `L.tileLayer()`.
+  - Ajuste dinámico del zoom en dispositivos con `devicePixelRatio > 1`.
+  - Limitación del radio visual de precisión de GPS para evitar superposición con el marcador del usuario.
+  - Reducción de la opacidad del círculo de precisión para mejorar la claridad visual.
+  - Optimización en la actualización del marcador del usuario evitando recreaciones innecesarias.
+
+- Interfaz móvil (responsive):
+  - Conversión del botón GPS en elemento flotante utilizando `position: fixed` para mejorar su accesibilidad en dispositivos móviles.
+  - Ampliación del área táctil del botón de filtros para mejorar la interacción en pantallas táctiles.
+  - Ajustes en el comportamiento del panel de búsqueda y del botón “Volver a resultados” para mejorar la navegación en móvil.
+
+- Gestión de datos y rendimiento:
+  - Optimización de llamadas al backend evitando peticiones redundantes al reabrir el panel de administración.
+  - Implementación de invalidación controlada de caché tras cambios en el estado de eventos.
+  - Incorporación de la opción `force: true` en `cargarEventos()` para forzar recargas solo cuando es necesario.
+
+### Refactor
+- Backend:
+  - Eliminación del retorno directo de entidades JPA en endpoints REST, reemplazándolo por `EventoResponseDTO`.
+  - Centralización del mapeo de entidades a DTO mediante la función `mapToDTO`, evitando exponer relaciones internas.
+  - Optimización de consultas Hibernate en el listado de eventos mediante `LEFT JOIN FETCH` con `DISTINCT`, eliminando el problema N+1 y reduciendo la cantidad de consultas generadas.
+
+- Frontend:
+  - Reemplazo de listeners directos por delegación de eventos en elementos generados dinámicamente con `innerHTML`, mejorando la estabilidad de la SPA.
+  - Ajustes en la lógica de renderizado de menús dinámicos para evitar pérdida de listeners.
+
+### Corregido
+- Corrección en la carga del perfil del organizador (“Mi Perfil”) causada por el uso de `fetch` sin `await`.
+  - Se incorporó `async/await` y validación de `response.ok`.
+  - Se ajustó la delegación de eventos para evitar pérdida de listeners al regenerar el menú.
+- Corrección en la lectura de `position.coords.accuracy` que impedía calcular correctamente el radio de precisión del GPS.
+- Prevención de múltiples instancias simultáneas de `watchPosition` durante el seguimiento de ubicación.
+- Corrección en la lógica de reapertura del modal del panel de administración:
+  - `panelModal.show()` se movió fuera del bloque `finally` para evitar ejecuciones innecesarias tras operaciones fallidas.
+- Eliminación del riesgo de serialización infinita al devolver eventos con redes sociales y organizador mediante el uso consistente de DTOs y configuración adecuada de relaciones JPA.
+
+---
+
 ## [v1.1.1] - 2026-02-01
 
 ### Mejorado

@@ -65,8 +65,11 @@ public class EventoServicio {
 	}
 
 	// READ: Obtener todos los eventos
-	public List<Evento> obtenerTodos() {
-		return eventoRepository.findAll();
+	public List<EventoResponseDTO> obtenerTodos() {
+	    return eventoRepository.findAllWithRelations()
+	            .stream()
+	            .map(this::mapToDTO)
+	            .toList();
 	}
 
 	public List<Evento> obtenerEventosPorOrganizador(Long organizadorId) {
