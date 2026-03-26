@@ -1,5 +1,5 @@
 # ✨ PLANIFY — Aplicación de Eventos Interactivos
-### v1.2.0 · Versión estable
+### v1.3.0 · Versión estable
 
 Una aplicación web estable que permite visualizar eventos en un mapa interactivo, administrar organizadores y eventos mediante un sistema con CRUD completo, autenticación mediante JWT y un panel de administración para moderación.
 
@@ -20,7 +20,7 @@ Una aplicación web estable que permite visualizar eventos en un mapa interactiv
 - MySQL
 - Spring Security + JWT
 - DTOs para Request/Response
-
+- Jsoup (sanitización y prevención de XSS)
 ---
 
 ## ⚙️ Funcionalidades principales
@@ -33,6 +33,7 @@ Una aplicación web estable que permite visualizar eventos en un mapa interactiv
   - Categorías contempladas: Música, Deporte, Teatro, Artes & Cultura, Gastronomía, Festivales & Ferias, Educación, Familiar, Tecnología y Bienestar.
 - CRUD completo (Crear, Leer, Actualizar, Eliminar)
 - Validación de fechas de inicio/fin
+- Validación de coordenadas geográficas
 - Sistema de estados de evento (PENDIENTE / ACEPTADO / RECHAZADO)
 - Gestión de precios (eventos gratuitos o pagos)
 - OpenCage Data API (búsqueda de direcciones y obtención de coordenadas)
@@ -87,9 +88,16 @@ Una aplicación web estable que permite visualizar eventos en un mapa interactiv
 
 ### Backend
 - Controladores para organizadores, eventos y administrador.
-- Servicios con lógica de negocio separada.
+- Servicios con separación de responsabilidades:
+  - Validación
+  - Sanitización (Jsoup)
+  - Persistencia
+- Uso consistente de DTOs para evitar exponer entidades JPA
 - Repositories para `Evento`, `Organizador` y `Categoria` y `RedSocialLink`.
 - Filtros y configuración JWT.
+- Handler global de excepciones para manejo centralizado de errores
+- Prevención de SQL Injection mediante JPA/Hibernate
+- Prevención de XSS mediante sanitización de datos
 - Endpoints destacados:
   - `GET /api/eventos` — listar eventos públicos.
   - `GET /api/eventos/{id}` — detalle de evento.
@@ -104,10 +112,35 @@ Una aplicación web estable que permite visualizar eventos en un mapa interactiv
 - Modales HTML para manejo de GET, acciones y roles
 - Integración completa con endpoints del backend
 -Sistema de caché en frontend para reducir llamadas innecesarias al backend
+- Manejo mejorado de errores provenientes del backend en `fetch`
+- Corrección de validaciones dinámicas en formularios
 
 ---
 
 ## 📘 Registro de versiones (resumen)
+
+- **v1.3.0 — 2026-03-26**
+  - 🔐 Seguridad:
+    - Sanitización con Jsoup (prevención XSS)
+    - Validación de coordenadas geográficas
+    - Protección contra SQL Injection mediante JPA/Hibernate
+  
+  - ⚙️ Backend:
+    - Separación de responsabilidades en servicios (validación, sanitización, persistencia)
+    - Uso consistente de DTOs y soporte para multipart (`@RequestPart` + `@Valid`)
+  
+  - 🧱 Refactor:
+    - Manejo centralizado de errores con handler global
+    - Sanitización aplicada en el mapeo DTO → Entity
+    - Reorganización y centralización de lógica en servicios
+  
+  - 🐛 Fixes:
+    - Mejora en manejo de errores en `fetch`
+    - Correcciones en formularios dinámicos y Bootstrap
+    - Fix de fechas (`LocalTime`) y datos en panel admin
+    - Corrección de filtros, duplicación en mapa y renderizado
+    - Prevención de serialización infinita (DTOs)
+    - Gestión correcta de tokens de recuperación
 
 - **v1.2.0 — 2026-03-10**
   -Integración de geolocalización (GPS) para centrar el mapa en la ubicación del usuario.
