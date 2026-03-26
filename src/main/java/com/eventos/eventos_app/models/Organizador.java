@@ -59,6 +59,9 @@ public class Organizador {
     @OneToMany(mappedBy = "organizador", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Evento> eventos = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "organizador", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ContraToken> tokens;
 
     @Enumerated(EnumType.STRING)
     private Rol rol;
@@ -158,6 +161,6 @@ public class Organizador {
 	public void setFechaNacimiento(LocalDate fechaNacimiento) {
 		this.fechaNacimiento = fechaNacimiento;
 	}
-    
+
     
 }

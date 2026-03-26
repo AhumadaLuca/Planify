@@ -1,15 +1,18 @@
 // eventos.js
-import { formatearFecha } from "./utils.js";
+import { formatearFecha, formatearHora } from "./utils.js";
 import { abrirModalDetalle } from "./modalDetallesGenerico.js";
 import { detectarRedSocialPorTipo, normalizarUrl, obtenerIconoPorTipo } from "./redesSociales.js";
 import { renderEstadoEvento } from "./renderEstadoEvento.js";
 import { hasEdad } from './verificacionEdad.js';
 import { t } from "./i18n.js";
+import { mostrarToast } from "./toastsGenerico.js";
+import { manejarErrorResponse } from "./manejoErrores.js";
 
 // Cache en memoria (se carga una sola vez por sesión)
 export let eventosCache = [];
 let lastFetch = 0;
 const CACHE_TTL = 60_000;
+let filtrosActivos = null;
 
 export const markersByEventId = new Map();
 
@@ -27,7 +30,7 @@ export async function cargarEventos(map, { force = false } = {}) {
 		// 👉 Pedir al backend
 		console.trace("Se está llamando a /api/eventos");
 		const resp = await fetch("/api/eventos");
-		if (!resp.ok) throw new Error("Error al obtener eventos");
+		if (!resp.ok) mostrarToast(t("eventoErrorObtenerEventos"), "danger");
 
 		const eventos = await resp.json();
 
@@ -35,21 +38,30 @@ export async function cargarEventos(map, { force = false } = {}) {
 		eventosCache = eventos;
 		lastFetch = ahora;
 
-		dibujarEventosEnMapa(eventos);
+		if (filtrosActivos) {
+			filtrarEventos(filtrosActivos);
+		} else {
+			dibujarEventosEnMapa(eventos);
+		}
 		return eventos;
 
 	} catch (err) {
-		console.error("❌ Error cargando eventos:", err);
+		mostrarToast(t("eventoErrorObtenerEventos"), "danger");
 	}
 }
 
 export function dibujarEventosEnMapa(eventos) {
 
 	if (window.eventMarkersLayer) {
-		window.eventMarkersLayer.clearLayers();
+		window.mapInstance.removeLayer(window.eventMarkersLayer);
 	}
 
+	window.eventMarkersLayer = L.markerClusterGroup();
+	window.mapInstance.addLayer(window.eventMarkersLayer);
+
+	console.log(eventos);
 	const eventosVisibles = eventos.filter(e => {
+		//if (e.estado !== "ACEPTADO") return false;
 		if (!e.requiereVerificarEdad) return true;
 		return hasEdad();
 	});
@@ -87,12 +99,20 @@ export function dibujarEventosEnMapa(eventos) {
               ${evento.precio > 0 ? `$${evento.precio}` : t("eventoGratis")}
             </span>
           </div>
+          <div class="d-flex align-items-center">
+          <b>📅</b>
           <p style="margin:5px; font-size:12px;">
-            <b>📅</b> ${formatearFecha(evento.fechaInicio)}
+             ${evento.tipo === "RECURRENTE"
+				? t("verHorario")
+				: obtenerTextoFecha(evento)}
           </p>
+          </div>
+          <div class="d-flex align-items-center">
+          <b>${obtenerIconoCategoria(evento.categoriaNombre)}</b>
           <p style="margin:5px;" font-size:12px;>
-          <b>${obtenerIconoCategoria(evento.categoriaNombre)}</b> ${evento.categoriaNombre}
+          ${evento.categoriaNombre}
           </p>
+          </div>
         </div>
       `;
 
@@ -115,9 +135,9 @@ export function dibujarEventosEnMapa(eventos) {
 			[evento.latitud, evento.longitud],
 			{ icon: crearIconoPin(color) }
 		)
-			.addTo(window.eventMarkersLayer)
 			.bindPopup(popupDiv);
 
+		window.eventMarkersLayer.addLayer(marker);
 		markersByEventId.set(evento.id, marker);
 	});
 }
@@ -194,9 +214,13 @@ export function obtenerIconoCategoria(nombreCat) {
 	return iconosPorCategoria[nombreCat] || iconosPorCategoria.default;
 }
 
-export function filtrarEventos({ categorias, precioMax, fechaDesde, fechaHasta }) {
+export function filtrarEventos(filtros) {
+
+	filtrosActivos = filtros;
 
 	let filtrados = [...eventosCache];
+
+	let { categorias, precioMax, fechaDesde, fechaHasta, tipos, abiertosAhora } = filtros;
 
 	console.log("Sin filtrar: ", filtrados);
 
@@ -207,22 +231,34 @@ export function filtrarEventos({ categorias, precioMax, fechaDesde, fechaHasta }
 
 	// Categorías
 	if (Array.isArray(categorias) && categorias.length > 0) {
-		filtrados = filtrados.filter(e => categorias.includes(e.categoria.nombre));
+		filtrados = filtrados.filter(e =>
+			categorias.some(c => c.toLowerCase().trim() === e.categoriaNombre?.toLowerCase().trim())
+		);
+	}
+
+	//Tipo de evento
+	if (Array.isArray(tipos) && tipos.length > 0) {
+		filtrados = filtrados.filter(e => tipos.includes(e.tipo));
+	}
+
+	//Abierto ahora
+	if (abiertosAhora) {
+		filtrados = filtrados.filter(e => estaAbiertoAhora(e));
 	}
 
 	// Precio
-	if (precioMax && precioMax > 0) {
+	if (precioMax !== undefined && precioMax !== null) {
 		filtrados = filtrados.filter(e => e.precio <= precioMax);
 	}
 
-	// Fecha desde
 	if (fechaDesde) {
-		filtrados = filtrados.filter(e => new Date(e.fechaInicio) >= new Date(fechaDesde));
+		const desde = normalizarFechaInicio(fechaDesde);
+		filtrados = filtrados.filter(e => new Date(e.fechaInicio) >= desde);
 	}
 
-	// Fecha hasta
 	if (fechaHasta) {
-		filtrados = filtrados.filter(e => new Date(e.fechaInicio) <= new Date(fechaHasta));
+		const hasta = normalizarFechaFin(fechaHasta);
+		filtrados = filtrados.filter(e => new Date(e.fechaInicio) <= hasta);
 	}
 
 	// Dibujar en el mapa
@@ -231,15 +267,63 @@ export function filtrarEventos({ categorias, precioMax, fechaDesde, fechaHasta }
 	return filtrados;
 }
 
+function estaAbiertoAhora(evento) {
+
+	const ahora = new Date();
+
+	// 🟢 EVENTO PUNTUAL
+	if (evento.tipo === "PUNTUAL") {
+
+		if (!evento.fechaInicio || !evento.fechaFin) return false;
+
+		const inicio = new Date(evento.fechaInicio);
+		const fin = new Date(evento.fechaFin);
+
+		return ahora >= inicio && ahora <= fin;
+	}
+
+	// 🔵 EVENTO RECURRENTE
+	if (evento.tipo === "RECURRENTE") {
+
+		if (!evento.horarios || evento.horarios.length === 0) return false;
+
+		const diasMap = {
+			0: "SUNDAY",
+			1: "MONDAY",
+			2: "TUESDAY",
+			3: "WEDNESDAY",
+			4: "THURSDAY",
+			5: "FRIDAY",
+			6: "SATURDAY"
+		};
+
+		const diaHoy = diasMap[ahora.getDay()];
+
+		const horaActual = ahora.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+		return evento.horarios.some(h => {
+
+			if (h.dia !== diaHoy) return false;
+
+			return horaActual >= h.horaApertura && horaActual <= h.horaCierre;
+		});
+	}
+
+	return false;
+}
+
 export async function verDetalles(eventoId, modoAdmin = false) {
 
 	let evento = eventosCache.find(e => e.id === eventoId);
 
 	try {
 		if (!evento) {
-			const res = await fetch(`/api/eventos/${eventoId}`);
-			if (!res.ok) throw new Error(t("eventoErrorObtener"));
-			evento = await res.json();
+			const resp = await fetch(`/api/eventos/${eventoId}`);
+			if (!resp.ok) {
+				await manejarErrorResponse(resp);
+				return;
+			}
+			evento = await resp.json();
 		}
 
 
@@ -257,9 +341,13 @@ ${evento.imagenUrl ? `
 <h5 class="card-title mb-2">${evento.titulo}</h5>
 
 <div class="mb-2 d-flex flex-wrap gap-2">
-<span class="badge bg-secondary">
-${evento.categoriaNombre || t("eventoSinCategoria")}
-</span>
+	<span class="badge bg-secondary">
+		${evento.categoriaNombre || t("eventoSinCategoria")}
+	</span>
+
+	<span class="badge ${evento.tipo === "RECURRENTE" ? "bg-info" : "bg-primary"}">
+		${evento.tipo}
+	</span>
 </div>
 
 <p class="card-text mb-3">${evento.descripcion || ''}</p>
@@ -270,7 +358,7 @@ ${evento.categoriaNombre || t("eventoSinCategoria")}
 <i class="ti ti-calendar evento-icon me-2"></i>
 <div>
 <strong>${t("eventoFecha")}:</strong><br>
-${formatearFecha(evento.fechaInicio)} - ${formatearFecha(evento.fechaFin)}
+${obtenerTextoFecha(evento)}
 </div>
 </li>
 
@@ -390,7 +478,7 @@ ${t("eventoBotonAceptar")}
 		}
 
 	} catch (err) {
-		console.error("Error cargando detalle del evento:", err);
+		mostrarToast(t("errorDetalleEvento"), "danger");
 	}
 }
 
@@ -403,21 +491,23 @@ export async function verEventosOrganizador() {
 
 	try {
 
-		const response = await fetch("http://localhost:8080/api/eventos/mis-eventos", {
+		const response = await fetch("/api/eventos/mis-eventos", {
 			headers: {
 				"Authorization": `Bearer ${token}`
 			}
 		});
 
 		if (!response.ok) {
-			tabla.innerHTML = `<tr><td colspan='8' class='text-center text-danger'>${t("eventoErrorObtenerEventos")}</td></tr>`;
+			tabla.innerHTML = `<tr><td colspan='8' class='text-center text-danger'>${
+				manejarErrorResponse(response)
+				}</td></tr>`;
 			return;
 		}
 
 		const text = await response.text();
 
 		if (!text) {
-			tabla.innerHTML = `<tr><td colspan='8' class='text-center'>${t("eventoNoHayEventos")}</td></tr>`;
+			tabla.innerHTML = `<tr><td colspan='8' class='text-center'>${await manejarErrorResponse(response)}</td></tr>`;
 			return;
 		}
 
@@ -441,6 +531,12 @@ export async function verEventosOrganizador() {
         <td>
             ${evento.categoria?.nombre || "-"}
         </td>
+        
+        <td>
+    <span class="badge ${evento.tipo === "RECURRENTE" ? "bg-info" : "bg-primary"}">
+        ${evento.tipo || "-"}
+    </span>
+</td>
 
         <td>
             ${evento.ubicacion || "-"}
@@ -450,13 +546,9 @@ export async function verEventosOrganizador() {
             ${formatearFecha(evento.fechaCreacion)}
         </td>
 
-    	<td>
-            ${formatearFecha(evento.fechaInicio)}
-        </td>
-
-    	<td>
-            ${formatearFecha(evento.fechaFin)}
-        </td>
+<td>
+    ${obtenerTextoFecha(evento)}
+</td>
 
         <td>
           ${evento.imagenUrl
@@ -517,8 +609,6 @@ export async function verEventosOrganizador() {
 		});
 
 	} catch (error) {
-
-		console.error("Error al cargar eventos:", error);
 
 		tabla.innerHTML = `
 		<tr>
@@ -603,5 +693,49 @@ function tablasRedesSociales(redes) {
 	return parts.join('');
 }
 
+export function obtenerTextoFecha(evento) {
+	if (evento.tipo === "PUNTUAL") {
+		return `
+		${t("inicio")}: ${formatearFecha(evento.fechaInicio)} <br>
+		${t("fin")}: ${formatearFecha(evento.fechaFin)}`;
+	}
 
+	if (evento.tipo === "RECURRENTE") {
+		if (!evento.horarios || evento.horarios.length === 0) {
+			return t("sinHorarios");
+		}
+
+		return evento.horarios.map(h =>
+			`${traducirDia(h.dia)}: ${formatearHora(h.horaApertura)} - ${formatearHora(h.horaCierre)}`
+		).join("<br>");
+	}
+
+	return t("sinInfo");
+}
+
+export function traducirDia(dia) {
+	const dias = {
+		MONDAY: t("lunes"),
+		TUESDAY: t("martes"),
+		WEDNESDAY: t("miercoles"),
+		THURSDAY: t("jueves"),
+		FRIDAY: t("viernes"),
+		SATURDAY: t("sabado"),
+		SUNDAY: t("domingo")
+	};
+
+	return dias[dia] || dia;
+}
+
+function normalizarFechaInicio(fecha) {
+	const d = new Date(fecha);
+	d.setHours(0, 0, 0, 0);
+	return d;
+}
+
+function normalizarFechaFin(fecha) {
+	const d = new Date(fecha);
+	d.setHours(23, 59, 59, 999);
+	return d;
+}
 

@@ -55,12 +55,13 @@ export function initBuscadorEventos() {
 		}
 
 		eventos.forEach(ev => {
+			console.log(ev);
 			const li = document.createElement("li");
 			li.innerHTML = `
         <h6 style="margin:0; font-weight:600; font-size:16px;">${ev.titulo}</h6>
         <p style="margin:0; margin-top:5px;"> ${ev.ubicacion || ''}</p>
         <p style="margin:5px;" font-size:12px;>
-          <b>${obtenerIconoCategoria(ev.categoria.nombre)}</b> ${ev.categoria.nombre}
+          <b>${obtenerIconoCategoria(ev.categoriaNombre)}</b> ${ev.categoriaNombre}
           </p>
         <p style="margin:5px; font-size:16px;">
             <b>📅</b> ${formatearFecha(ev.fechaInicio)}

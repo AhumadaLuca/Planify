@@ -23,6 +23,7 @@
   "fechaNacimiento": "Date of birth",
   "telCel": "Phone / Mobile",
   "nombreOrg": "Organization name",
+  "direccionOrg": "Organization address",
   "precio": "Price",
   "imagenEvento": "Event image",
   "enlaceCompraExterno": "External purchase link",
@@ -220,7 +221,7 @@
   "eventoNoCargoInfo": "Could not load event information",
   "eventoEliminarTitulo": "Delete event",
   "eventoEliminarConfirmacion": "Are you sure you want to delete the event",
-  "eventoErrorEliminar": "Could not delete the event",
+
   "eventoEliminadoCorrectamente": "✅ Event deleted successfully",
   "eventoErrorEliminarMostrar": "❌ An error occurred while trying to delete the event",
   
@@ -254,5 +255,65 @@
   "eventoAceptar": "Approve",
   "eventoRechazar": "Reject",
   
-  "idioma": "Language"
+  "idioma": "Language",
+  
+  "olvidastePassword": "Forgot your password?",
+"recuperarPassword": "Recover password",
+"recuperarPasswordTexto": "Enter your email and we will send instructions to reset your password.",
+"enviar": "Send",
+
+  "resetPasswordTitulo": "Reset password",
+  "nuevaPassword": "New password",
+  "confirmarPassword": "Confirm password",
+  "nuevaPasswordPlaceholder": "Enter your new password",
+  "confirmarPasswordPlaceholder": "Repeat the password",
+  "cambiarPassword": "Change password",
+
+  "passwordNoCoinciden": "Passwords do not match",
+  "tokenInvalido": "Invalid token",
+  "passwordActualizada": "Password updated successfully",
+  "errorActualizarPassword": "Error updating password",
+  "errorConexion": "Connection error",
+  
+  "enviando": "Sending...",
+  "correoInstrucciones": "If the email exists you will receive instructions.",
+  "errorSolicitud": "Error sending request.",
+  
+  "editarPerfil": "Edit profile",
+  "guardarCambios": "Save changes",
+  
+  "perfilActualizado": "Update profile",
+  
+    "tipoEvento": "Event type",
+  "eventoPuntual": "One-time event",
+  "eventoRecurrente": "Recurring schedule",
+  "horarios": "Schedules",
+  "agregarHorario": "+ Add schedule",
+  "lunes": "Monday",
+  "martes": "Tuesday",
+  "miercoles": "Wednesday",
+  "jueves": "Thursday",
+  "viernes": "Friday",
+  "sabado": "Saturday",
+  "domingo": "Sunday",
+  "avisoHorario": "You must add at least one schedule",
+  "verHorario": "View schedules",
+  "errorDetalleEvento": "Error loading event details",
+  "sinInfo": "No information",
+  "sinHorarios": "No schedules defined",
+  "errorActualizarPerfil": "Error updating profile",
+  "errorCargarPerfil": "Error loading profile",
+  "inicio": "Start",
+  "fin": "End",
+   "eventosAbiertos": "Open now",
+     "registroPasswordFormato": "The password must contain letters and numbers",
+  "registroTelefonoInvalido": "The phone number has an invalid format",
+  "registroNombreInvalido": "The name must have at least 2 characters",
+  "registroApellidoInvalido": "The last name must have at least 2 characters",
+  "noNet": "No connection.",
+  "gpsPermisoDenegado": "Location permission denied",
+  "gpsNoDisponible": "Location not available",
+  "gpsTimeout": "Could not get location in time",
+  "gpsErrorGeneral": "Error obtaining location",
+  "gpsPerdido": "GPS signal lost"
 }

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
@@ -28,11 +29,14 @@ public class Evento {
     @Column(name = "descripcion", length = 500, nullable = false)
     private String descripcion;
 
-    @Column(name = "fecha_inicio", nullable = false)
+    @Column(name = "fecha_inicio", nullable = true)
     private LocalDateTime fechaInicio;
 
-    @Column(name = "fecha_fin", nullable = false)
+    @Column(name = "fecha_fin", nullable = true)
     private LocalDateTime fechaFin;
+
+    @OneToMany(mappedBy = "evento", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<HorarioEvento> horarios = new ArrayList<>();
 
     @Column(name = "ubicacion", nullable = true)
     private String ubicacion;  
@@ -68,6 +72,7 @@ public class Evento {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "organizador_id", nullable = false)
     @JsonBackReference
+    @JsonIgnore
     private Organizador organizador;
     
     @OneToMany(mappedBy = "evento", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -76,6 +81,10 @@ public class Evento {
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false)
     private EstadoEvento estado = EstadoEvento.PENDIENTE;
+    
+    @Column(name = "tipo", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private TipoEvento tipo;
 
     @PrePersist
     public void prePersist() {

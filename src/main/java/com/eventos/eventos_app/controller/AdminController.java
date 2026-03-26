@@ -41,7 +41,7 @@ public class AdminController {
 			EstadoEvento estadoEvento = EstadoEvento.valueOf(estado);
 			
 			adminServicio.cambiarEstadoEvento(id, estadoEvento);
-			return ResponseEntity.ok("Cambio de estado correctamente");
+			return ResponseEntity.ok("CAMBIO_ESTADO_CORRECTO");
 		} catch (RuntimeException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
 		}
@@ -64,7 +64,7 @@ public class AdminController {
 	public ResponseEntity<?> verificarOrganizador(@PathVariable Long id) {
 		try {
 			adminServicio.verificarOrganizador(id);
-			return ResponseEntity.ok("Organizador verificado correctamente");
+			return ResponseEntity.ok("ORGANIZADOR_VERIFICACION_CORRECTO");
 		} catch (RuntimeException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
 		}
@@ -76,12 +76,12 @@ public class AdminController {
 	public ResponseEntity<?> eliminarOrganizador(@PathVariable Long id) {
 	    try {
 	        adminServicio.eliminarOrganizadorConEventos(id);
-	        return ResponseEntity.ok("✅ Organizador y sus eventos eliminados correctamente");
+	        return ResponseEntity.ok("ELIMINAR_ORGANIZADOR_Y_EVENTOS_CORRECTO");
 	    } catch (RuntimeException e) {
 	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("❌ " + e.getMessage());
 	    } catch (Exception e) {
 	        e.printStackTrace();
-	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("⚠️ Error al eliminar el organizador");
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("⚠️ "+"ERROR_ELIMINAR_ORGANIZADOR");
 	    }
 	}
 

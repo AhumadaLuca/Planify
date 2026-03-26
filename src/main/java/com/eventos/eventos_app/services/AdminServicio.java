@@ -37,9 +37,11 @@ public class AdminServicio {
              e.getTitulo(),
              e.getDescripcion(),
              e.getCategoria() != null ? e.getCategoria().getNombre() : null,
-             e.getFechaInicio() != null ? e.getFechaInicio().toString() : null,
-             e.getFechaFin() != null ? e.getFechaFin().toString() : null,
-             e.getEstado()
+             e.getFechaInicio(),
+             e.getFechaFin(),
+             e.getEstado(),
+             e.getTipo(),
+             e.getHorarios()
          )
      ).toList();
     	 
@@ -57,7 +59,7 @@ public class AdminServicio {
     public void cambiarEstadoEvento(Long idEvento, EstadoEvento estadoEvento) {
     	
         Evento evento = eventoRepository.findById(idEvento)
-            .orElseThrow(() -> new RuntimeException("Evento no encontrado"));
+            .orElseThrow(() -> new RuntimeException("EVENTO_NO_ENCONTRADO"));
 
         evento.setEstado(estadoEvento);
         
@@ -66,13 +68,13 @@ public class AdminServicio {
     
     public Organizador verOrganizador(Long id){
     	return organizadorRepository.findById(id)
-    			.orElseThrow(() -> new RuntimeException("Organizador no encontrado"));
+    			.orElseThrow(() -> new RuntimeException("ORGANIZADOR_NO_ECONTRADO"));
     	
     }
     
     public void verificarOrganizador(Long idOrganizador) {
         Organizador org = organizadorRepository.findById(idOrganizador)
-            .orElseThrow(() -> new RuntimeException("Organizador no encontrado"));
+            .orElseThrow(() -> new RuntimeException("ORGANIZADOR_NO_ECONTRADO"));
 
         if(org.getVerificado()) {
         	org.setVerificado(false);
@@ -85,7 +87,7 @@ public class AdminServicio {
     
     public void eliminarOrganizadorConEventos(Long id) {
         Organizador organizador = organizadorRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Organizador no encontrado"));
+                .orElseThrow(() -> new RuntimeException("ORGANIZADOR_NO_ECONTRADO"));
 
         // Gracias a CascadeType.ALL y orphanRemoval, esto elimina también sus eventos
         organizadorRepository.delete(organizador);

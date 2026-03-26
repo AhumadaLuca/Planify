@@ -1,5 +1,5 @@
 
-import { cargarEventos, eventosCache } from './eventos.js';
+import { cargarEventos, eventosCache, obtenerTextoFecha } from './eventos.js';
 import { mostrarToast } from './toastsGenerico.js';
 import { mostrarModalConfirmacion } from "./confirmarGenerico.js";
 import { abrirModalDetalle } from "./modalDetallesGenerico.js";
@@ -29,11 +29,14 @@ export async function initAdminPanel(forceReload = false) {
 	}
 
 	try {
-		const resp = await fetch("http://localhost:8080/api/admin/organizadoresYeventos", {
+		const resp = await fetch("/api/admin/organizadoresYeventos", {
 			headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
 		});
 
-		if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+		if (!resp.ok) {
+			await manejarErrorResponse(resp);
+			return;
+		}
 
 		const organizadores = await resp.json();
 
@@ -74,7 +77,7 @@ document.addEventListener("click", async (e) => {
 
 			onConfirm: async () => {
 				try {
-					const response = await fetch(`http://localhost:8080/api/admin/eventos/cambiarEstado/${id}?estado=${estado}`, {
+					const response = await fetch(`/api/admin/eventos/cambiarEstado/${id}?estado=${estado}`, {
 						method: "PUT",
 						headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
 					});
@@ -99,14 +102,8 @@ document.addEventListener("click", async (e) => {
 						await initAdminPanel(true);
 
 					} else {
-
-						mostrarToast(
-							esAceptado
-								? `❌ ${t("eventoNoSePudoAceptar")}`
-								: `❌ ${t("eventoNoSePudoRechazar")}`,
-							"danger"
-						);
-
+						await manejarErrorResponse(resp);
+						return;
 					}
 
 				} catch (err) {
@@ -135,15 +132,15 @@ document.addEventListener("click", async (e) => {
 		const orgId = e.target.dataset.organizadorId;
 
 		try {
-			const response = await fetch(`http://localhost:8080/api/admin/organizadores/ver/${orgId}`, {
+			const response = await fetch(`/api/admin/organizadores/ver/${orgId}`, {
 				method: "GET",
 				headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
 			});
 
 			if (!response.ok) {
-				throw new Error(t("organizadorErrorObtener"));
+				await manejarErrorResponse(response);
+				return;
 			}
-
 			const org = await response.json();
 
 			abrirModalDetalle({
@@ -195,7 +192,7 @@ document.addEventListener("click", async (e) => {
 
 		} catch (err) {
 			console.error("Error:", err);
-			alert(t("errorGenerico"));
+			mostrarToast(t("errorGenerico") + err, "danger");
 		}
 
 		return;
@@ -220,13 +217,15 @@ document.addEventListener("click", async (e) => {
 
 			onConfirm: async () => {
 				try {
-					const response = await fetch(`http://localhost:8080/api/admin/organizadores/verificar/${orgId}`, {
+					const response = await fetch(`/api/admin/organizadores/verificar/${orgId}`, {
 						method: "PUT",
 						headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
 					});
 
-					if (!response.ok) throw new Error(t("organizadorErrorVerificar"));
-
+					if (!response.ok) {
+						await manejarErrorResponse(response);
+						return;
+					}
 					// Invalidar cache
 					eventosCache.length = 0;
 
@@ -278,12 +277,15 @@ document.addEventListener("click", async (e) => {
 
 			onConfirm: async () => {
 				try {
-					const resp = await fetch(`http://localhost:8080/api/admin/organizadores/eliminar/${orgId}`, {
+					const resp = await fetch(`/api/admin/organizadores/eliminar/${orgId}`, {
 						method: "DELETE",
 						headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
 					});
 
-					if (!resp.ok) throw new Error();
+					if (!resp.ok) {
+						await manejarErrorResponse(resp);
+						return;
+					}
 
 					mostrarToast(`☑️ ${t("organizadorEliminadoCorrectamente")}`, "success");
 
@@ -394,6 +396,7 @@ ${t("organizadorSinEventos")}
 <th>${t("tablaAdminId")}</th>
 <th>${t("tablaAdminTitulo")}</th>
 <th>${t("tablaAdminCategoria")}</th>
+<th>${t("tipoEvento")}</th>
 <th>${t("tablaAdminFechas")}</th>
 <th>${t("tablaAdminEstado")}</th>
 <th>${t("tablaAdminAcciones")}</th>
@@ -402,14 +405,6 @@ ${t("organizadorSinEventos")}
 
 <tbody>
 ${eventos.map(ev => {
-
-			const fi = ev.fechaInicio
-				? ev.fechaInicio.replace("T", " ").slice(0, 16)
-				: "—";
-
-			const ff = ev.fechaFin
-				? ev.fechaFin.replace("T", " ").slice(0, 16)
-				: "—";
 
 			return `
 <tr>
@@ -424,10 +419,12 @@ ${eventos.map(ev => {
 ${_escape(ev.categoria || "—")}
 </td>
 
+<td style="min-width:140px">
+${_escape(ev.estado || "—")}
+</td>
+
 <td style="min-width:180px">
-<strong>${t("eventoInicio")}:</strong><br>${fi}
-<br>
-<strong>${t("eventoFin")}:</strong><br>${ff}
+${obtenerTextoFecha(ev)}
 </td>
 
 <td>

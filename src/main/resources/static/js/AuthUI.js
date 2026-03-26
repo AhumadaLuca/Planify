@@ -21,7 +21,7 @@ export function actualizarMenuUsuario() {
 
     // Usuario logueado
     menu.innerHTML = `
-        <span class="d-flex justify-content-center align-items-center text-white fw-semibold mb-2 mt-2" style="margin-right:25px;"><i class="ti ti-mood-happy-filled me-1 fs-3" aria-hidden="true"></i> ${t("hola")}, ${nombre}</span>
+        <span id="sidebarNombre" class="d-flex justify-content-center align-items-center text-white fw-semibold mb-2 mt-2" style="margin-right:25px;"><i class="ti ti-mood-happy-filled me-1 fs-3" aria-hidden="true"></i> ${t("hola")}, ${nombre}</span>
         <a href="#" id="linkPerfil" class="menu-item"><i class="ti ti-user-edit me-1 fs-5" aria-hidden="true"></i> ${t("miPerfil")}</a>
         ${rol === "ADMIN" ? `<a href="#" id="linkAdminPanel" data-bs-toggle="modal" data-bs-target="#adminPanelModal" class="menu-item d-flex justify-content-start align-items-start w-100 text-decoration-none gap-2">
 			<i class="ti ti-settings me-1 fs-5" aria-hidden="true"></i> ${t("panelAdmin")}</a>` : ""}

@@ -5,9 +5,12 @@ let marcadorUsuario = null;
 let circuloPrecision = null;
 let watchId = null;
 let primeraUbicacionBuena = false;
+let ultimoUpdate = Date.now();
+let intervaloChequeo = null;
+let gpsPerdidoMostrado = false;
 
 export function estaGPSActivo() {
-    return watchId !== null;
+	return watchId !== null;
 }
 
 
@@ -27,19 +30,24 @@ export function initGPS(map) {
 			maximumAge: 0
 		}
 	);
+
+	iniciarDetectorGPS(); // 👈 NUEVO
 }
 
 export function centrarEnUsuario(map) {
-    if (marcadorUsuario) {
-        const latLng = marcadorUsuario.getLatLng();
-        map.setView(latLng, 16, {
-            animate: true,
-            duration: 0.5
-        });
-    }
+	if (marcadorUsuario) {
+		const latLng = marcadorUsuario.getLatLng();
+		map.setView(latLng, 16, {
+			animate: true,
+			duration: 0.5
+		});
+	}
 }
 
 function actualizarPosicion(position, map) {
+
+	ultimoUpdate = Date.now(); // 👈 NUEVO
+	gpsPerdidoMostrado = false; // 👈 NUEVO
 
 	const lat = position.coords.latitude;
 	const lon = position.coords.longitude;
@@ -83,6 +91,48 @@ function actualizarPosicion(position, map) {
 	}
 }
 
+function iniciarDetectorGPS() {
+	intervaloChequeo = setInterval(() => {
+		const ahora = Date.now();
+
+		if (ahora - ultimoUpdate > 15000 && !gpsPerdidoMostrado) {
+			mostrarToast(t("gpsPerdido"), "warning");
+			gpsPerdidoMostrado = true;
+		}
+	}, 5000);
+}
+
+export function detenerGPS() {
+
+	if (watchId !== null) {
+		navigator.geolocation.clearWatch(watchId);
+		watchId = null;
+	}
+
+	if (intervaloChequeo) {
+		clearInterval(intervaloChequeo);
+		intervaloChequeo = null;
+	}
+}
+
 function manejarError(error) {
 	console.warn("Error GPS:", error.message);
+
+
+	switch (error.code) {
+		case error.PERMISSION_DENIED:
+			mostrarToast(t("gpsPermisoDenegado"), "danger");
+			break;
+
+		case error.POSITION_UNAVAILABLE:
+			mostrarToast(t("gpsNoDisponible"), "warning");
+			break;
+
+		case error.TIMEOUT:
+			mostrarToast(t("gpsTimeout"), "warning");
+			break;
+
+		default:
+			mostrarToast(t("gpsErrorGeneral"), "danger");
+	}
 }

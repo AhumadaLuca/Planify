@@ -1,10 +1,11 @@
-
 import { mostrarToast } from './toastsGenerico.js';
 import { actualizarMenuUsuario } from './AuthUI.js';
 import { limpiarFormularioGenerico } from "./limpiezaFormGenerico.js";
 import { t } from "./i18n.js";
+import { manejarErrorResponse, showFieldError, clearFieldError } from "./manejoErrores.js";
 
 export function initFormularioOrganizador() {
+
 
 	document.getElementById("registroModal").addEventListener("hidden.bs.modal", () => {
 		limpiarFormularioGenerico("#formRegistro", {
@@ -14,38 +15,32 @@ export function initFormularioOrganizador() {
 			textoBoton: t("registroBotonRegistro"),
 			previewImagenSelector: null
 		});
+
+		form.dataset.modo = "registro";
+
+		document.getElementById("regPassword").required = true;
+		document.getElementById("regPassword2").required = true;
+
+		document.getElementById("regPassword").closest(".col-md-6").style.display = "block";
+		document.getElementById("regPassword2").closest(".col-md-6").style.display = "block";
+
+		document.getElementById("regEmail").readOnly = false;
 	});
-	
+
 	const form = document.getElementById("formRegistro");
 	if (!form) return;
 
 	const errBox = document.getElementById("registroError");
 
-	function showFieldError(inputId, msg) {
-		const input = document.getElementById(inputId);
-		const error = document.getElementById("error" + inputId.replace("reg", ""));
-		if (!input || !error) return;
-		input.classList.add("is-invalid");
-		error.textContent = msg;
-		error.classList.remove("d-none");
-	}
-
-	function clearFieldError(inputId) {
-		const input = document.getElementById(inputId);
-		const error = document.getElementById("error" + inputId.replace("reg", ""));
-		if (!input || !error) return;
-		input.classList.remove("is-invalid");
-		error.textContent = "";
-		error.classList.add("d-none");
-	}
-
 	form.addEventListener("input", (e) => {
-		if (e && e.target && e.target.id) clearFieldError(e.target.id);
+		if (e && e.target && e.target.id) clearFieldError(e.target.id, "reg");
 		if (errBox) {
 			errBox.classList.add("d-none");
 			errBox.innerText = "";
 		}
 	});
+
+	const modo = form.dataset.modo || "registro";
 
 	form.addEventListener("submit", async function(e) {
 		e.preventDefault();
@@ -64,25 +59,61 @@ export function initFormularioOrganizador() {
 
 		let hasError = false;
 
-		if (!nombre) { showFieldError("regNombre", t("registroNombreObligatorio")); hasError = true; }
-		if (!apellido) { showFieldError("regApellido", t("registroApellidoObligatorio")); hasError = true; }
-		if (!email || !email.includes("@")) { showFieldError("regEmail", t("registroEmailInvalido")); hasError = true; }
-		if (password.length < 6) { showFieldError("regPassword", t("registroPasswordMinimo")); hasError = true; }
-		if (password !== password2) { showFieldError("regPassword2", t("registroPasswordsNoCoinciden")); hasError = true; }
+		if (!nombre) { showFieldError("regNombre", t("registroNombreObligatorio"), "reg"); hasError = true; }
+		if (!apellido) { showFieldError("regApellido", t("registroApellidoObligatorio"), "reg"); hasError = true; }
+		if (modo === "registro") {
+			const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+			const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/;
+
+			if (!emailRegex.test(email)) {
+				showFieldError("regEmail", t("registroEmailInvalido"), "reg");
+				hasError = true;
+			}
+
+			if (password.length < 6) {
+				showFieldError("regPassword", t("registroPasswordMinimo"), "reg");
+				hasError = true;
+			}
+			if (password !== password2) {
+				showFieldError("regPassword2", t("registroPasswordsNoCoinciden"), "reg");
+				hasError = true;
+			}
+			if (!passwordRegex.test(password)) {
+				showFieldError("regPassword", t("registroPasswordFormato"), "reg");
+				hasError = true;
+			}
+		}
+
+		const telefonoRegex = /^[+]?[0-9\s\-()]{6,20}$/;
+
+		if (telefono && !telefonoRegex.test(telefono)) {
+			showFieldError("regTelefono", t("registroTelefonoInvalido"), "reg");
+			hasError = true;
+		}
+
+		if (!nombre || nombre.length < 2) {
+			showFieldError("regNombre", t("registroNombreInvalido"), "reg");
+			hasError = true;
+		}
+
+		if (!apellido || apellido.length < 2) {
+			showFieldError("regApellido", t("registroApellidoInvalido"), "reg");
+			hasError = true;
+		}
 
 		if (!fechaNacimiento) {
-			showFieldError("regFechaNacimiento", t("registroFechaNacimientoObligatoria"));
+			showFieldError("regFechaNacimiento", t("registroFechaNacimientoObligatoria"), "reg");
 			hasError = true;
 		} else {
 			const userDate = new Date(fechaNacimiento);
 			if (isNaN(userDate.getTime())) {
-				showFieldError("regFechaNacimiento", t("registroFechaInvalida"));
+				showFieldError("regFechaNacimiento", t("registroFechaInvalida"), "reg");
 				hasError = true;
 			} else {
 				const adultLimit = new Date();
 				adultLimit.setFullYear(adultLimit.getFullYear() - 18);
 				if (userDate > adultLimit) {
-					showFieldError("regFechaNacimiento", t("registroDebeSerMayorEdad"));
+					showFieldError("regFechaNacimiento", t("registroDebeSerMayorEdad"), "reg");
 					hasError = true;
 				}
 			}
@@ -91,16 +122,16 @@ export function initFormularioOrganizador() {
 		if (imagen) {
 			const validExt = ["image/jpeg", "image/png", "image/webp"];
 			if (!validExt.includes(imagen.type)) {
-				showFieldError("regImagenPerfil", t("registroFormatoImagenInvalido"));
+				showFieldError("regImagenPerfil", t("registroFormatoImagenInvalido"), "reg");
 				hasError = true;
 			}
 			if (imagen.size > 2 * 1024 * 1024) {
-				showFieldError("regImagenPerfil", t("registroImagenTamano"));
+				showFieldError("regImagenPerfil", t("registroImagenTamano"), "reg");
 				hasError = true;
 			}
 			if (typeof validarDimensionesImagen === "function") {
 				const ok = await validarDimensionesImagen(imagen);
-				if (!ok) { showFieldError("regImagenPerfil", t("registroImagenDimensiones")); hasError = true; }
+				if (!ok) { showFieldError("regImagenPerfil", t("registroImagenDimensiones"), "reg"); hasError = true; }
 			}
 		}
 
@@ -110,41 +141,62 @@ export function initFormularioOrganizador() {
 		}
 
 		const organizador = {
-			nombre,
-			apellido,
-			email,
-			password,
+			nombre: nombre.trim(),
+			apellido: apellido.trim(),
+
+			email: email.trim().toLowerCase(),
+
 			fechaNacimiento,
-			nombreOrganizacion,
-			direccionOrganizacion,
-			telefono
+
+			nombreOrganizacion: nombreOrganizacion
+				? nombreOrganizacion.trim()
+				: undefined,
+
+			direccionOrganizacion: direccionOrganizacion
+				? direccionOrganizacion.trim()
+				: undefined,
+
+			telefono: telefono ? telefono.trim() : undefined
 		};
+
+		if (modo === "registro") {
+			organizador.password = password;
+		}
 
 		const formData = new FormData();
 		formData.append("organizador", new Blob([JSON.stringify(organizador)], { type: "application/json" }));
 		if (imagen) formData.append("fotoPerfil", imagen);
 
+		const url = modo === "editar"
+			? `/api/organizadores/editar/${localStorage.getItem("id")}`
+			: "/api/auth/registro";
+
+		const method = modo === "editar" ? "PUT" : "POST";
+
 		try {
-			const res = await fetch("http://localhost:8080/api/auth/registro", {
-				method: "POST",
+			const res = await fetch(url, {
+				method: method,
 				body: formData
 			});
 
 			if (!res.ok) {
-				const msg = await res.text().catch(() => null);
-				mostrarToast(t("registroErrorRegistrar") + msg, "danger");
+				await manejarErrorResponse(res, "organizador");
 				return;
 			}
 
+			form.dataset.modo = "registro";
 			form.reset();
 			bootstrap.Modal.getInstance(document.getElementById("registroModal")).hide();
-			mostrarToast(t("registroExitoso"), "success");
+			if (modo === "editar") {
+				mostrarToast(t("perfilActualizado"), "success");
+			} else {
+				mostrarToast(t("registroExitoso"), "success");
+			}
 
 			const modalLogin = new bootstrap.Modal(document.getElementById("loginModal"));
 			modalLogin.show();
 
 		} catch (error) {
-			console.error("Error en fetch registro: ", error);
 			mostrarToast(t("registroErrorConexion"), "danger");
 		}
 	});
@@ -177,14 +229,14 @@ export function initFormularioOrganizador() {
 		}
 
 		try {
-			const resp = await fetch("http://localhost:8080/api/auth/login", {
+			const resp = await fetch("/api/auth/login", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email, password })
 			});
 
 			if (!resp.ok) {
-				mostrarToast(t("loginCredencialesIncorrectas"), "danger");
+				await manejarErrorResponse(resp);
 				return;
 			}
 
@@ -201,7 +253,6 @@ export function initFormularioOrganizador() {
 			actualizarMenuUsuario();
 
 		} catch (error) {
-			console.error("Error en login:", error);
 			mostrarToast(t("loginErrorServidor"), "danger");
 		}
 	});

@@ -13,14 +13,21 @@ import { initBuscadorEventos } from './buscador.js';
 import { hasEdad, setEdad } from './verificacionEdad.js';
 import { initGPS, centrarEnUsuario, estaGPSActivo } from './gps.js';
 import { initSidebar } from './sidebarmovil.js';
-import { verPerfilOrganizador } from './organizador.js';
+import { verPerfilOrganizador, editarPerfil } from './organizador.js';
 import { cargarIdioma, traducirPagina } from "./i18n.js";
+import { recuperarContra } from './recuperarContra.js';
+import { t } from "./i18n.js";
+import { mostrarToast } from "./toastsGenerico.js";
 
 export async function iniciarApp() {
 
+	window.addEventListener("offline", () => {
+		mostrarToast(t("noNet"), "danger");
+	});
+
 	const idiomaGuardado = localStorage.getItem("idioma") || "es";
 	await cargarIdioma(idiomaGuardado);
-	
+
 	document.getElementById("idiomaActual").textContent = idiomaGuardado.toUpperCase();
 
 	document.getElementById("btnLangES")?.addEventListener("click", async () => {
@@ -36,10 +43,10 @@ export async function iniciarApp() {
 		refrescarUI();
 		traducirPagina();
 	});
-	
+
 	function refrescarUI() {
-    actualizarMenuUsuario();
-    dibujarEventosEnMapa(eventosCache);
+		actualizarMenuUsuario();
+		dibujarEventosEnMapa(eventosCache);
 	}
 
 	let issuerBackend = null;
@@ -116,6 +123,7 @@ export async function iniciarApp() {
 	actualizarMenuUsuario();
 	initUbicacionModal();
 	initFormularioOrganizador();
+	recuperarContra();
 
 	// Delegar acciones por botones o tabs
 	const modalMisEventos = document.getElementById("modalAdministrarEventosOrganizador");
@@ -158,4 +166,21 @@ export async function iniciarApp() {
 			cargarEventos(window.mapInstance);
 		}
 	}, 60_000);
+
+	document.getElementById("formRegistro")
+		.addEventListener("submit", async (e) => {
+
+			e.preventDefault();
+
+			const form = e.target;
+			const modo = form.dataset.modo || "registro";
+
+			if (modo === "editar") {
+				editarPerfil(form);
+			} else {
+				registrarOrganizador(form);
+			}
+
+		});
+
 }

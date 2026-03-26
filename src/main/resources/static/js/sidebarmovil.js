@@ -28,7 +28,7 @@ export function initSidebar() {
     // 🔥 NUEVO: cerrar si se pulsa algo dentro del sidebar (modo móvil)
     if (
       window.matchMedia("(max-width: 768px)").matches &&
-       e.target.closest(".sidebar a:not([data-bs-toggle='collapse']), .sidebar button:not (.btn-idioma)")
+       e.target.closest(".sidebar a:not([data-bs-toggle='collapse']), .sidebar button:not(.btn-idioma)")
     ) {
       cerrarSidebar();
     }

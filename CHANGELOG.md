@@ -3,6 +3,84 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 
 ---
 
+## [v1.3.0] - 2026-03-18
+
+### Añadido
+- Sistema de recuperación de contraseña mediante correo electrónico:
+  - Generación de token temporal asociado al usuario.
+  - Envío de enlace seguro para restablecer contraseña.
+  - Página dedicada `reset-password.html` para actualización de credenciales.
+- Implementación de entidad de tokens de recuperación con expiración automática.
+- Integración de envío de correos utilizando JavaMailSender con autenticación segura.
+- Funcionalidad de visualización de perfil de organizador mediante endpoint protegido.
+- Implementación de eventos recurrentes:
+  - Nueva entidad `HorarioEvento` (OneToMany).
+  - Soporte de múltiples días y franjas horarias por evento.
+- Adaptación completa del frontend para renderizar eventos recurrentes.
+- Internacionalización de días y horarios en eventos.
+- Visualización de horarios en panel de organizador y administrador.
+- Implementación de clustering en mapa mediante Leaflet (`markerClusterGroup`).
+- Persistencia de filtros de eventos en memoria durante la sesión.
+- Reaplicación automática de filtros tras recarga de datos.
+- Sistema global de validación en backend con Jakarta Validation (`@NotBlank`, `@NotNull`, etc.).
+- Sistema unificado de respuestas de error en formato JSON.
+- Implementación de handler global de excepciones (`@RestControllerAdvice`).
+- Sistema de códigos de error desacoplados del mensaje (backend → frontend).
+- Sistema de rate limiting con Bucket4j en endpoints sensibles (crear/editar eventos).
+
+### Mejorado
+- Flujo de recuperación de contraseña:
+  - Integración completa con sistema i18n.
+  - Indicador visual de carga (spinner) en solicitudes.
+- Formulario de organizador:
+  - Adaptación de textos mediante i18n.
+- Modelo de eventos:
+  - Soporte para eventos puntuales y recurrentes sin conflictos de datos.
+  - Separación de lógica entre fechas (`LocalDateTime`) y horarios (`LocalTime`).
+- Renderizado frontend:
+  - Centralización de lógica de visualización de fechas/horarios.
+  - Reutilización de funciones para evitar duplicación.
+- Gestión de filtros:
+  - Separación entre carga de datos y renderizado.
+  - Centralización del estado en `filtrosActivos`.
+  - Consistencia visual entre datos cargados y mostrados.
+- Manejo de errores:
+  - Integración backend–frontend mediante códigos de error traducibles.
+  - Diferenciación entre errores de validación (inputs) y errores globales (toasts).
+  - Centralización del manejo de errores en función reutilizable.
+  - Soporte para respuestas inesperadas o fallos de parseo JSON.
+- Seguridad:
+  - Sanitización de inputs con Jsoup para prevenir XSS.
+  - Validación de coordenadas geográficas.
+  - Uso de JPA/Hibernate para evitar SQL Injection.
+- Backend:
+  - Separación de responsabilidades en servicios (validación, sanitización, persistencia).
+  - Uso consistente de DTOs para desacoplar entidades de la API.
+  - Adaptación de endpoints multipart con `@RequestPart` + `@Valid`.
+
+### Refactor
+- Reestructuración del flujo de manejo de errores:
+  - Delegación al handler global.
+- Mejora en el mapeo DTO → Entity aplicando sanitización previa.
+- Reorganización del servicio de eventos para mayor claridad y mantenibilidad.
+- Centralización de lógica de validación y transformación de datos.
+
+### Corregido
+- Corrección en manejo de respuestas `fetch` para mostrar errores del backend correctamente.
+- Resolución de conflicto por múltiples tokens de recuperación:
+  - Eliminación de tokens previos antes de generar uno nuevo.
+- Corrección en inicialización de componentes Bootstrap en páginas independientes.
+- Corrección de validaciones HTML en formularios dinámicos:
+  - Eliminación de errores por campos ocultos con `required`.
+- Corrección en eventos del modal de perfil (eliminación de `setTimeout` innecesarios).
+- Corrección de error "Invalid Date" al procesar horarios (`LocalTime`).
+- Corrección de datos incompletos en panel admin (campo `tipo` en DTO).
+- Corrección de pérdida de filtros tras recarga automática de eventos.
+- Corrección de duplicación de renderizado en mapa con filtros activos.
+- Prevención de serialización infinita en entidades con relaciones bidireccionales (uso de DTOs).
+
+---
+
 ## [v1.2.0] - 2026-03-10
 
 ### Añadido

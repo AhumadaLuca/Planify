@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import lombok.Data;
@@ -12,28 +13,30 @@ import lombok.Data;
 @Data
 public class RegistroOrgRequestDTO {
 	
-	@NotBlank @Size(min = 2, max = 30)
+    @NotBlank @Size(min = 2, max = 30)
     public String nombre;
-	
-	@NotBlank @Size(min = 2, max = 30)
+
+    @NotBlank @Size(min = 2, max = 30)
     public String apellido;
-	
-	@Email @NotBlank
+
+    @Email @NotBlank
     public String email;
-	
-	@NotBlank @Size(min = 6)
+
+    @NotBlank
+    @Size(min = 8, max = 100)
     public String password;
-	
-	@NotNull
+
+    @NotNull
     public LocalDate fechaNacimiento;
-    
+
     @NotBlank
+    @Pattern(regexp = "^[0-9+\\- ]{8,15}$", message = "Teléfono inválido")
     public String telefono;
-    
-    @NotBlank
+
+    @NotBlank @Size(max = 100)
     public String nombreOrganizacion;
-    
-    @NotBlank
+
+    @NotBlank @Size(max = 150)
     public String direccionOrganizacion;
     
     

@@ -2,6 +2,9 @@ package com.eventos.eventos_app.controller;
 
 import com.eventos.eventos_app.services.EventoServicio;
 
+import jakarta.validation.Valid;
+
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,24 +41,19 @@ public class EventoController {
 
 	@PostMapping(value = "/guardar", consumes = { "multipart/form-data" })
 	@PreAuthorize("hasRole('ORGANIZADOR')")
-	public ResponseEntity<?> crearEvento(@RequestPart("evento") EventoRequestDTO dto,
-			@RequestPart(value = "imagenUrl", required = false) MultipartFile imagen, Authentication authentication) {
+	public ResponseEntity<?> crearEvento(
+	        @Valid @RequestPart("evento") EventoRequestDTO dto,
+	        @RequestPart(value = "imagenUrl", required = false) MultipartFile imagen,
+	        Authentication authentication) throws IOException {
 
-		try {
-			String email = authentication.getName(); // email del organizador logueado
-			Organizador organizador = organizadorRepository.findByEmail(email)
-					.orElseThrow(() -> new RuntimeException("Organizador no encontrado"));
+	    String email = authentication.getName();
 
-			EventoResponseDTO nuevo = eventoServicio.crearEvento(dto, imagen, organizador);
-			System.out.println(nuevo);
-			return ResponseEntity.status(HttpStatus.CREATED).body(nuevo);
+	    Organizador organizador = organizadorRepository.findByEmail(email)
+	            .orElseThrow(() -> new RuntimeException("ORGANIZADOR_NO_ECONTRADO"));
 
-		} catch (RuntimeException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-		} catch (Exception e) {
-			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error al crear el evento");
-		}
+	    EventoResponseDTO nuevo = eventoServicio.crearEvento(dto, imagen, organizador);
+
+	    return ResponseEntity.status(HttpStatus.CREATED).body(nuevo);
 	}
 
 	// READ: Todos los eventos
@@ -74,23 +72,23 @@ public class EventoController {
 		try {
 			String email = (String) authentication.getPrincipal(); // o username
 			Organizador organizador = organizadorRepository.findByEmail(email)
-					.orElseThrow(() -> new RuntimeException("Organizador no encontrado"));
+					.orElseThrow(() -> new RuntimeException("ORGANIZADOR_NO_ECONTRADO"));
 
 			List<Evento> eventos = eventoServicio.obtenerEventosPorOrganizador(organizador.getId());
 
 			if (eventos.isEmpty()) {
-				return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No hay eventos registrados.");
+				return ResponseEntity.status(HttpStatus.NO_CONTENT).body("NO_EVENTOS_REGISTRADOS");
 			}
 
 			return ResponseEntity.ok(eventos);
 
 		} catch (ClassCastException e) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("El usuario autenticado no es un organizador.");
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("USUARIO_NO_ORGANIZADOR");
 		} catch (RuntimeException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
 		} catch (Exception e) {
 			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al cargar eventos.");
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("ERROR_CARGAR_EVENTOS");
 		}
 	}
 
@@ -103,26 +101,16 @@ public class EventoController {
 
 	@PutMapping("/editar/{id}")
 	@PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZADOR')")
-	public ResponseEntity<?> actualizarEvento(@PathVariable Long id, @RequestPart("evento") EventoRequestDTO dto,
-			@RequestPart(value = "imagenUrl", required = false) MultipartFile imagen, Authentication authentication) {
-		try {
-			// Obtener organizador autenticado
+	public ResponseEntity<?> actualizarEvento(@Valid @PathVariable Long id, @RequestPart("evento") EventoRequestDTO dto,
+			@RequestPart(value = "imagenUrl", required = false) MultipartFile imagen, Authentication authentication) throws IOException {
 			String email = authentication.getName();
 			Organizador organizador = organizadorRepository.findByEmail(email)
-					.orElseThrow(() -> new RuntimeException("Organizador no encontrado"));
+					.orElseThrow(() -> new RuntimeException("ORGANIZADOR_NO_ECONTRADO"));
 
 			// Actualizar evento
 			EventoResponseDTO actualizado = eventoServicio.actualizarEvento(id, dto, imagen, organizador);
 
 			return ResponseEntity.ok(actualizado);
-
-		} catch (RuntimeException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-		} catch (Exception e) {
-			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error al actualizar el evento");
-		}
-
 	}
 	
 	@DeleteMapping("/eliminar/{id}")
@@ -131,7 +119,7 @@ public class EventoController {
 	    try {
 	        String email = authentication.getName();
 	        Organizador organizador = organizadorRepository.findByEmail(email)
-	            .orElseThrow(() -> new RuntimeException("Organizador no encontrado"));
+	            .orElseThrow(() -> new RuntimeException("ORGANIZADOR_NO_ECONTRADO"));
 
 	        eventoServicio.eliminarEvento(id, organizador);
 	        return ResponseEntity.noContent().build(); // 204
@@ -139,7 +127,7 @@ public class EventoController {
 	    } catch (RuntimeException e) {
 	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
 	    } catch (Exception e) {
-	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar el evento");
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("ERROR_ELIMINAR_EVENTO");
 	    }
 	}
 }

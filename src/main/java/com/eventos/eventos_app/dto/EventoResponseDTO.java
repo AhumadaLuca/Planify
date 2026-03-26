@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.eventos.eventos_app.models.EstadoEvento;
+import com.eventos.eventos_app.models.TipoEvento;
 
 import lombok.Data;
 
@@ -15,6 +16,8 @@ public class EventoResponseDTO {
     public String descripcion;
     public LocalDateTime fechaInicio;
     public LocalDateTime fechaFin;
+    public TipoEvento tipo;
+    public List<HorarioEventoDTO> horarios;
     public String ubicacion;
     public Double latitud;
     public Double longitud;

@@ -1,4 +1,3 @@
-
 import { cargarEventos } from './eventos.js';
 import { verEventosOrganizador, eventosCache } from './eventos.js';
 import { mostrarToast } from './toastsGenerico.js';
@@ -7,17 +6,19 @@ import { limpiarFormularioGenerico } from "./limpiezaFormGenerico.js";
 import { detectarRedSocialPorTipo, normalizarUrl, obtenerIconoPorTipo, validarUrl } from "./redesSociales.js";
 import { panelModal, initAdminPanel } from "./adminPanel.js";
 import { t } from "./i18n.js";
+import { manejarErrorResponse, showFieldError, clearFieldError } from "./manejoErrores.js";
+
 
 
 export function initFormularioEvento() {
-	
+
 	const form = document.getElementById("formEvento");
 
 	document.getElementById("nuevoEventoModal").addEventListener("hidden.bs.modal", () => {
-		
-		
-    	const origen = form.dataset.origen;
-		
+
+
+		const origen = form.dataset.origen;
+
 		console.log("🧹 Cerrando MODAL — limpiando formulario de evento...");
 		limpiarFormularioGenerico("#formEvento", {
 			idTitulo: "tituloModalEvento",
@@ -26,27 +27,27 @@ export function initFormularioEvento() {
 			textoBoton: t("eventoCrearEvento"),
 			previewImagenSelector: "#previewImagenEvento"
 		});
-		
-		// 🔥 SI VENÍA DEL ADMIN → REABRIR PANEL
-    if (origen === "admin") {
-        const adminModalEl = document.getElementById("adminPanelModal");
-        if (adminModalEl) {
-            bootstrap.Modal.getOrCreateInstance(adminModalEl).show();
-        }
-    }
 
-    // 🔥 SI VENÍA DEL ORGANIZADOR → REFRESCAR LISTA
-    if (origen === "organizador") {
-        if (typeof verEventosOrganizador === "function") {
-            verEventosOrganizador();
-        }
-    }
-    
-    delete form.dataset.origen;
-    if (!form) return;
-		
-	});	
-	
+		// 🔥 SI VENÍA DEL ADMIN → REABRIR PANEL
+		if (origen === "admin") {
+			const adminModalEl = document.getElementById("adminPanelModal");
+			if (adminModalEl) {
+				bootstrap.Modal.getOrCreateInstance(adminModalEl).show();
+			}
+		}
+
+		// 🔥 SI VENÍA DEL ORGANIZADOR → REFRESCAR LISTA
+		if (origen === "organizador") {
+			if (typeof verEventosOrganizador === "function") {
+				verEventosOrganizador();
+			}
+		}
+
+		delete form.dataset.origen;
+		if (!form) return;
+
+	});
+
 
 
 	// Contenedores DOM (se asignan en initRedesUI)
@@ -60,31 +61,12 @@ export function initFormularioEvento() {
 
 	// escuchar inputs una sola vez (no dentro del submit)
 	form.addEventListener("input", (e) => {
-		if (e && e.target && e.target.id) clearFieldError(e.target.id);
+		if (e && e.target && e.target.id) clearFieldError(e.target.id,"evento");
 		if (errBox) {
 			errBox.classList.add("d-none");
 			errBox.innerText = "";
 		}
 	});
-
-	// helpers
-	function showFieldError(inputId, msg) {
-		const input = document.getElementById(inputId);
-		const error = document.getElementById("error" + inputId.replace("evento", ""));
-		if (!input || !error) return;
-		input.classList.add("is-invalid");
-		error.textContent = msg;
-		error.classList.remove("d-none");
-	}
-
-	function clearFieldError(inputId) {
-		const input = document.getElementById(inputId);
-		const error = document.getElementById("error" + inputId.replace("evento", ""));
-		if (!input || !error) return;
-		input.classList.remove("is-invalid");
-		error.textContent = "";
-		error.classList.add("d-none");
-	}
 
 	function preloadRedes(redesArray) {
 		// redesArray: [{ id?, url, tipo? }, ...] o list of strings
@@ -211,6 +193,77 @@ export function initFormularioEvento() {
 	}
 
 	console.log("🎯 initFormularioOrganizador cargado correctamente");
+
+	const tipoSelect = document.getElementById("eventoTipo");
+	const bloqueFechas = document.getElementById("bloqueFechas");
+	const bloqueHorarios = document.getElementById("bloqueHorarios");
+
+	tipoSelect.addEventListener("change", () => {
+		const tipo = tipoSelect.value;
+
+		if (tipo === "PUNTUAL") {
+			bloqueFechas.classList.remove("d-none");
+			bloqueHorarios.classList.add("d-none");
+		} else {
+			bloqueFechas.classList.add("d-none");
+			bloqueHorarios.classList.remove("d-none");
+		}
+	});
+
+	const container = document.getElementById("horariosContainer");
+
+	document.getElementById("btnAgregarHorario").addEventListener("click", () => {
+		const row = document.createElement("div");
+		row.className = "d-flex gap-2 mb-2";
+
+		row.innerHTML = `
+		<select class="form-select dia">
+			<option value="MONDAY">${t("lunes")}</option>
+			<option value="TUESDAY">${t("martes")}</option>
+			<option value="WEDNESDAY">${t("miercoles")}</option>
+			<option value="THURSDAY">${t("jueves")}</option>
+			<option value="FRIDAY">${t("viernes")}</option>
+			<option value="SATURDAY">${t("sabado")}</option>
+			<option value="SUNDAY">${t("domingo")}</option>
+		</select>
+
+		<input type="time" class="form-control apertura">
+		<input type="time" class="form-control cierre">
+
+		<button type="button" class="btn btn-danger btn-sm eliminar">X</button>
+	`;
+
+		row.querySelector(".eliminar").addEventListener("click", () => {
+			row.remove();
+		});
+
+		container.appendChild(row);
+	});
+
+	const fechaInicioInput = document.getElementById("eventoFechaInicio");
+	const fechaFinInput = document.getElementById("eventoFechaFin");
+
+	tipoSelect.addEventListener("change", () => {
+		const tipo = tipoSelect.value;
+
+		if (tipo === "PUNTUAL") {
+			bloqueFechas.classList.remove("d-none");
+			bloqueHorarios.classList.add("d-none");
+
+			// ✅ activar required
+			fechaInicioInput.required = true;
+			fechaFinInput.required = true;
+
+		} else {
+			bloqueFechas.classList.add("d-none");
+			bloqueHorarios.classList.remove("d-none");
+
+			// ❌ desactivar required
+			fechaInicioInput.required = false;
+			fechaFinInput.required = false;
+		}
+	});
+
 	// GUARDAR EVENTO
 	form.addEventListener("submit", async function(e) {
 		e.preventDefault();
@@ -235,38 +288,74 @@ export function initFormularioEvento() {
 			const urlVentaExterna = document.getElementById("eventoUrlVentaExterna").value.trim();
 			const requiereVerificarEdad = !!document.getElementById("eventoRequiereVerificarEdad")?.checked;
 			const imagenUrl = document.getElementById("eventoImagen")?.files?.[0];
+			const tipo = document.getElementById("eventoTipo").value;
+
+			let horarios = [];
 
 			let hasError = false;
 
 			// Validaciones principales
-			if (!titulo) { showFieldError("eventoTitulo", t("eventoTituloObligatorio")); hasError = true; }
-			if (!descripcion) { showFieldError("eventoDescripcion", t("eventoDescripcionObligatoria")); hasError = true; }
+			if (!titulo) { showFieldError("eventoTitulo", t("eventoTituloObligatorio"), "evento"); hasError = true; }
+			if (!descripcion) { showFieldError("eventoDescripcion", t("eventoDescripcionObligatoria"), "evento"); hasError = true; }
 
-			if (isNaN(categoriaId)) { showFieldError("eventoCategoriaId", t("eventoSeleccioneCategoria")); hasError = true; }
+			if (isNaN(categoriaId)) { showFieldError("eventoCategoriaId", t("eventoSeleccioneCategoria"), "evento"); hasError = true; }
+
+			if (tipo === "RECURRENTE") {
+				const filas = document.querySelectorAll("#horariosContainer > div");
+
+				filas.forEach(f => {
+					const dia = f.querySelector(".dia").value;
+					const apertura = f.querySelector(".apertura").value;
+					const cierre = f.querySelector(".cierre").value;
+
+					if (dia && apertura && cierre) {
+						horarios.push({
+							dia,
+							horaApertura: apertura,
+							horaCierre: cierre
+						});
+					}
+				});
+			}
 
 			const now = new Date();
 			const fechaInicioDate = new Date(fechaInicio);
 			const fechaFinDate = new Date(fechaFin);
-			if (isNaN(fechaInicioDate) || isNaN(fechaFinDate)) {
-				showFieldError("eventoFechaInicio", t("eventoFechasInvalidas"));
-				hasError = true;
-			} else {
-				if (fechaInicioDate < now) { showFieldError("eventoFechaInicio", t("eventoFechaInicioPasado")); hasError = true; }
-				if (fechaFinDate <= fechaInicioDate) { showFieldError("eventoFechaFin", t("eventoFechaFinPosterior")); hasError = true; }
+			if (tipo === "PUNTUAL") {
+				if (isNaN(fechaInicioDate) || isNaN(fechaFinDate)) {
+					showFieldError("eventoFechaInicio", t("eventoFechasInvalidas"), "evento");
+					hasError = true;
+				} else {
+					if (fechaInicioDate < now) {
+						showFieldError("eventoFechaInicio", t("eventoFechaInicioPasado"), "evento");
+						hasError = true;
+					}
+					if (fechaFinDate <= fechaInicioDate) {
+						showFieldError("eventoFechaFin", t("eventoFechaFinPosterior"), "evento");
+						hasError = true;
+					}
+				}
 			}
 
-			if (!ubicacion) { showFieldError("eventoDireccion", t("eventoDireccionObligatoria")); hasError = true; }
-			if (isNaN(latitud) || isNaN(longitud)) { showFieldError("eventoDireccion", t("eventoSeleccionarUbicacionMapa")); hasError = true; }
+			if (tipo === "RECURRENTE") {
+				if (horarios.length === 0) {
+					alert(t("avisoHorario"));
+					hasError = true;
+				}
+			}
+
+			if (!ubicacion) { showFieldError("eventoDireccion", t("eventoDireccionObligatoria"), "evento"); hasError = true; }
+			if (isNaN(latitud) || isNaN(longitud)) { showFieldError("eventoDireccion", t("eventoSeleccionarUbicacionMapa"), "evento"); hasError = true; }
 
 			if (precio !== "" && (isNaN(precio) || precio < 0)) {
-				showFieldError("eventoPrecio", t("eventoPrecioNumeroValido"));
+				showFieldError("eventoPrecio", t("eventoPrecioNumeroValido"), "evento");
 				hasError = true;
 			}
 
 			// Validación URL
 			if (urlVentaExterna) {
 				try { new URL(urlVentaExterna); }
-				catch { showFieldError("eventoUrlVentaExterna", t("eventoUrlInvalida")); hasError = true; }
+				catch { showFieldError("eventoUrlVentaExterna", t("eventoUrlInvalida"), "evento"); hasError = true; }
 			}
 
 			// Validación imagen
@@ -276,17 +365,17 @@ export function initFormularioEvento() {
 				const validExt = ["image/jpeg", "image/png", "image/webp"];
 
 				if (!validExt.includes(imagenUrl.type)) {
-					showFieldError("eventoImagen", t("eventoFormatoImagenInvalido"));
+					showFieldError("eventoImagen", t("eventoFormatoImagenInvalido"), "evento");
 					hasError = true;
 				}
 				if (imagenUrl.size > 2 * 1024 * 1024) {
-					showFieldError("eventoImagen", t("eventoImagenTamano"));
+					showFieldError("eventoImagen", t("eventoImagenTamano"), "evento");
 					hasError = true;
 				}
 				const ok = await validarDimensionesImagen(imagenUrl);
-				if (!ok) { showFieldError("eventoImagen", t("eventoImagenDimensiones")); hasError = true; }
+				if (!ok) { showFieldError("eventoImagen", t("eventoImagenDimensiones"), "evento"); hasError = true; }
 			} else if (!esEdicion) {
-				showFieldError("eventoImagen", t("eventoImagenObligatoria"));
+				showFieldError("eventoImagen", t("eventoImagenObligatoria"), "evento");
 				hasError = true;
 			}
 
@@ -311,21 +400,43 @@ export function initFormularioEvento() {
 				return;
 			}
 
-
 			// Armar objeto evento plano
 			const evento = {
-				titulo,
-				descripcion,
-				fechaInicio,
-				fechaFin,
-				ubicacion,
-				latitud,
-				longitud,
-				precio,
-				urlVentaExterna,
-				requiereVerificarEdad,
-				categoriaId,
-				redesSociales
+				titulo: titulo.trim(),
+				descripcion: descripcion.trim(),
+				ubicacion: ubicacion.trim(),
+
+				tipo,
+
+				fechaInicio: tipo === "PUNTUAL" ? fechaInicio : undefined,
+				fechaFin: tipo === "PUNTUAL" ? fechaFin : undefined,
+
+				horarios: tipo === "RECURRENTE"
+					? horarios.map(h => ({
+						dia: h.dia,
+						horaApertura: h.horaApertura,
+						horaCierre: h.horaCierre
+					}))
+					: undefined,
+
+				latitud: Number(latitud),
+				longitud: Number(longitud),
+
+				precio: precio ? Number(precio) : 0,
+
+				urlVentaExterna: urlVentaExterna
+					? urlVentaExterna.trim()
+					: undefined,
+
+				requiereVerificarEdad: Boolean(requiereVerificarEdad),
+
+				categoriaId: Number(categoriaId),
+
+				redesSociales: redesSociales?.map(r => ({
+					...r,
+					url: r.url.trim(),
+					nombre: r.nombre.trim()
+				})) || []
 			};
 
 			// Preparar FormData final
@@ -341,8 +452,8 @@ export function initFormularioEvento() {
 			const idEvento = form.dataset.idEvento; // ← se lee el atributo que guardamos antes
 			const method = idEvento ? "PUT" : "POST";
 			const url = idEvento
-				? `http://localhost:8080/api/eventos/editar/${idEvento}`
-				: `http://localhost:8080/api/eventos/guardar`;
+				? `/api/eventos/editar/${idEvento}`
+				: `/api/eventos/guardar`;
 
 			console.log("Empezando el guardado");
 
@@ -355,7 +466,8 @@ export function initFormularioEvento() {
 			});
 
 			if (!resp.ok) {
-				throw new Error(t("eventoErrorGuardar"));
+				await manejarErrorResponse(resp, "evento");
+				return;
 			} else {
 				mostrarToast(idEvento ? t("eventoActualizado") : t("eventoCreado"), "success");
 
@@ -381,11 +493,11 @@ export function initFormularioEvento() {
 				if (window.mapInstance) {
 					cargarEventos(window.mapInstance, { force: true });
 				}
-				
+
 				if (origen === "admin") {
-					
+
 					await initAdminPanel(true);
-					
+
 					if (panelModal) panelModal.show();
 				}
 				else if (origen === "organizador") {
@@ -424,7 +536,7 @@ export function initFormularioEvento() {
 		form.dataset.origen = origen;
 
 		try {
-			const response = await fetch(`http://localhost:8080/api/eventos/${id}`);
+			const response = await fetch(`/api/eventos/${id}`);
 
 			if (!response.ok) {
 				throw new Error(t("eventoErrorObtener"));
@@ -444,6 +556,23 @@ export function initFormularioEvento() {
 			document.getElementById("eventoLongitud").value = evento.ubicacion?.longitud || "";
 			document.getElementById("eventoLatitud").value = evento.latitud || "";
 			document.getElementById("eventoLongitud").value = evento.longitud || "";
+			document.getElementById("eventoTipo").value = evento.tipo || "PUNTUAL";
+
+			tipoSelect.dispatchEvent(new Event("change"));
+
+			if (evento.tipo === "RECURRENTE" && evento.horarios) {
+				container.innerHTML = "";
+
+				evento.horarios.forEach(h => {
+					document.getElementById("btnAgregarHorario").click();
+
+					const ultimaFila = container.lastChild;
+
+					ultimaFila.querySelector(".dia").value = h.dia;
+					ultimaFila.querySelector(".apertura").value = h.horaApertura;
+					ultimaFila.querySelector(".cierre").value = h.horaCierre;
+				});
+			}
 
 			// 📅 Fechas (formato ISO local compatible con input type="datetime-local")
 			if (evento.fechaInicio) {
@@ -507,8 +636,8 @@ export function initFormularioEvento() {
 				textoBoton: t("eventoBotonEliminar"),
 				onConfirm: async () => {
 					try {
-						const response = await fetch(
-							`http://localhost:8080/api/eventos/eliminar/${eventoId}`,
+						const resp = await fetch(
+							`/api/eventos/eliminar/${eventoId}`,
 							{
 								method: "DELETE",
 								headers: {
@@ -517,7 +646,10 @@ export function initFormularioEvento() {
 							}
 						);
 
-						if (!response.ok) throw new Error(t("eventoErrorEliminar"));
+						if (!resp.ok) {
+							await manejarErrorResponse(resp);
+							return;
+						}
 
 						mostrarToast(t("eventoEliminadoCorrectamente"), "success");
 
@@ -528,7 +660,7 @@ export function initFormularioEvento() {
 						if (window.mapInstance) {
 							cargarEventos(window.mapInstance, { force: true });
 						}
-						
+
 						await initAdminPanel(true);
 
 						// Recargar lista de eventos del organizador
