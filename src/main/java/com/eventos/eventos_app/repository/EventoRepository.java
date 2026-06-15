@@ -12,6 +12,7 @@ import com.eventos.eventos_app.models.Evento;
 @Repository
 public interface EventoRepository extends JpaRepository<Evento, Long> {
 	List<Evento> findByOrganizadorId(Long organizadorId);
+	List<Evento> findByRegionProvincia(String provincia);
 	@Query("""
 		    SELECT DISTINCT e FROM Evento e
 		    LEFT JOIN FETCH e.categoria

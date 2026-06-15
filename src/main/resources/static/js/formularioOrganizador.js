@@ -6,7 +6,6 @@ import { manejarErrorResponse, showFieldError, clearFieldError } from "./manejoE
 
 export function initFormularioOrganizador() {
 
-
 	document.getElementById("registroModal").addEventListener("hidden.bs.modal", () => {
 		limpiarFormularioGenerico("#formRegistro", {
 			idTitulo: "registroModalTitulo",
@@ -56,6 +55,10 @@ export function initFormularioOrganizador() {
 		const direccionOrganizacion = document.getElementById("regDireccionOrganizacion")?.value.trim() || "";
 		const imagenInput = document.getElementById("regImagenPerfil");
 		const imagen = imagenInput && imagenInput.files && imagenInput.files[0] ? imagenInput.files[0] : null;
+		const provincia = document.getElementById("provincia")?.value || "";
+		const departamentoId = document.getElementById("departamento")?.value || "";
+
+		const tipo = form.dataset.tipo || "ORGANIZADOR";
 
 		let hasError = false;
 
@@ -70,7 +73,7 @@ export function initFormularioOrganizador() {
 				hasError = true;
 			}
 
-			if (password.length < 6) {
+			if (password.length < 5) {
 				showFieldError("regPassword", t("registroPasswordMinimo"), "reg");
 				hasError = true;
 			}
@@ -135,6 +138,16 @@ export function initFormularioOrganizador() {
 			}
 		}
 
+		if (!provincia) {
+			showFieldError("provincia", t("registroProvincia"), "reg");
+			hasError = true;
+		}
+
+		if (!departamentoId) {
+			showFieldError("departamento", t("registroDepartamento"), "reg");
+			hasError = true;
+		}
+
 		if (hasError) {
 			mostrarToast(t("registroErroresFormulario"), "danger");
 			return;
@@ -156,7 +169,13 @@ export function initFormularioOrganizador() {
 				? direccionOrganizacion.trim()
 				: undefined,
 
-			telefono: telefono ? telefono.trim() : undefined
+			telefono: telefono ? telefono.trim() : undefined,
+			departamentoId: departamentoId,
+
+			rol: tipo === "ADMIN"
+				? "ADMIN"
+				: "ORGANIZADOR"
+
 		};
 
 		if (modo === "registro") {
@@ -246,6 +265,9 @@ export function initFormularioOrganizador() {
 			localStorage.setItem("token", data.token);
 			localStorage.setItem("nombre", data.nombre);
 			localStorage.setItem("rol", data.rol);
+			localStorage.setItem("regionId", data.regionId);
+			localStorage.setItem("provincia", data.provincia);
+			localStorage.setItem("departamento", data.departamento);
 
 			bootstrap.Modal.getInstance(document.getElementById("loginModal")).hide();
 
@@ -256,6 +278,8 @@ export function initFormularioOrganizador() {
 			mostrarToast(t("loginErrorServidor"), "danger");
 		}
 	});
+
+
 
 	async function validarDimensionesImagen(file) {
 		return new Promise(resolve => {

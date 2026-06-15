@@ -1,5 +1,5 @@
 # ✨ PLANIFY — Aplicación de Eventos Interactivos
-### v1.3.0 · Versión estable
+### v1.4.0 · Versión estable
 
 Una aplicación web estable que permite visualizar eventos en un mapa interactivo, administrar organizadores y eventos mediante un sistema con CRUD completo, autenticación mediante JWT y un panel de administración para moderación.
 
@@ -118,6 +118,35 @@ Una aplicación web estable que permite visualizar eventos en un mapa interactiv
 ---
 
 ## 📘 Registro de versiones (resumen)
+
+- **v1.4.0 — 2026-06-15**
+  - 🌍 Sistema de regiones:
+    - Implementación de regiones basadas en GeoJSON.
+    - Asociación de regiones a organizadores y eventos.
+
+  - 🔐 Seguridad y permisos:
+    - Incorporación del rol SUPER_ADMIN.
+    - Control de acceso y filtrado regional para administradores.
+
+  - 🗺️ Validación geográfica:
+    - Restricción de creación de eventos fuera de la región asignada.
+    - Validación geográfica en backend (JTS) y frontend (Turf.js).
+
+  - 📍 Mapas:
+    - Visualización de regiones permitidas en Leaflet.
+    - Integración de búsqueda geográfica mediante OpenCage.
+
+  - ⚙️ Optimización:
+    - Endpoint unificado de regiones.
+    - DTOs optimizados y caché local de regiones.
+
+  - 🔒 Seguridad:
+    - Externalización de credenciales mediante variables de entorno.
+
+  - 🐛 Fixes:
+    - Correcciones en filtrado regional.
+    - Correcciones de login para SUPER_ADMIN.
+    - Mejora en la gestión de modales entre paneles administrativos.
 
 - **v1.3.0 — 2026-03-26**
   - 🔐 Seguridad:

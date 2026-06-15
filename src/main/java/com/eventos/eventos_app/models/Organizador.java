@@ -62,6 +62,9 @@ public class Organizador {
     
     @OneToMany(mappedBy = "organizador", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ContraToken> tokens;
+    
+    @ManyToOne
+    private Region region;
 
     @Enumerated(EnumType.STRING)
     private Rol rol;

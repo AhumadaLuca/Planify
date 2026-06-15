@@ -67,14 +67,14 @@ public class EventoController {
 	}
 
 	@GetMapping("/mis-eventos")
-	@PreAuthorize("hasRole('ROLE_ORGANIZADOR')")
+	@PreAuthorize("hasAnyRole('ORGANIZADOR','ADMIN','SUPER_ADMIN')")
 	public ResponseEntity<?> obtenerEventosPorOrganizador(Authentication authentication) {
 		try {
 			String email = (String) authentication.getPrincipal(); // o username
 			Organizador organizador = organizadorRepository.findByEmail(email)
 					.orElseThrow(() -> new RuntimeException("ORGANIZADOR_NO_ECONTRADO"));
 
-			List<Evento> eventos = eventoServicio.obtenerEventosPorOrganizador(organizador.getId());
+			List<EventoResponseDTO> eventos = eventoServicio.obtenerEventosSegunUsuario(organizador);
 
 			if (eventos.isEmpty()) {
 				return ResponseEntity.status(HttpStatus.NO_CONTENT).body("NO_EVENTOS_REGISTRADOS");
@@ -100,7 +100,7 @@ public class EventoController {
 	}
 
 	@PutMapping("/editar/{id}")
-	@PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZADOR')")
+	@PreAuthorize("hasAnyRole('ORGANIZADOR','ADMIN','SUPER_ADMIN')")
 	public ResponseEntity<?> actualizarEvento(@Valid @PathVariable Long id, @RequestPart("evento") EventoRequestDTO dto,
 			@RequestPart(value = "imagenUrl", required = false) MultipartFile imagen, Authentication authentication) throws IOException {
 			String email = authentication.getName();
@@ -114,7 +114,7 @@ public class EventoController {
 	}
 	
 	@DeleteMapping("/eliminar/{id}")
-	@PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZADOR')")
+	@PreAuthorize("hasAnyRole('ORGANIZADOR','ADMIN','SUPER_ADMIN')")
 	public ResponseEntity<?> eliminarEvento(@PathVariable Long id, Authentication authentication) {
 	    try {
 	        String email = authentication.getName();

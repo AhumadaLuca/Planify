@@ -31,12 +31,12 @@ public class AdminInitializer {
                 admin.setFotoPerfil("/uploads/default-admin.png"); // puedes usar una imagen default
                 admin.setDireccionOrganizacion("Oficina Central");
                 admin.setVerificado(true);
-                admin.setRol(Rol.ADMIN);
+                admin.setRol(Rol.SUPER_ADMIN);
                 admin.setFechaRegistro(LocalDate.now());
 
                 organizadorRepository.save(admin);
 
-                System.out.println("✅ Administrador creado: admin@eventos.com / admin123");
+                System.out.println("✅ Administrador creado");
             } else {
                 System.out.println("ℹ️ Administrador ya existente, no se creó uno nuevo.");
             }

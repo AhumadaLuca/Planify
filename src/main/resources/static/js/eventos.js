@@ -583,7 +583,7 @@ export async function verEventosOrganizador() {
         <td>
 
           <button 
-            class="btn btn-warning btn-sm btn-editar-evento"
+            class="btn btn-primary btn-sm btn-editar-evento"
             data-bs-toggle="modal"
             data-bs-target="#nuevoEventoModal"
             data-id="${evento.id}"
@@ -595,7 +595,8 @@ export async function verEventosOrganizador() {
 
           <button 
             class="btn btn-danger btn-sm btn-eliminar-evento"
-            data-id="${evento.id}">
+            data-id="${evento.id}"
+            data-origen="organizador">
 
             ${t("eventoBotonEliminar")}
 

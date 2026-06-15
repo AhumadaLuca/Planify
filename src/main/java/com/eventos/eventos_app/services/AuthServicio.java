@@ -25,9 +25,11 @@ import com.eventos.eventos_app.dto.RegistroOrgRequestDTO;
 import com.eventos.eventos_app.dto.RegistroOrgResponseDTO;
 import com.eventos.eventos_app.models.ContraToken;
 import com.eventos.eventos_app.models.Organizador;
+import com.eventos.eventos_app.models.Region;
 import com.eventos.eventos_app.models.Rol;
 import com.eventos.eventos_app.repository.ContraTokenRepository;
 import com.eventos.eventos_app.repository.OrganizadorRepository;
+import com.eventos.eventos_app.repository.RegionRepository;
 
 import io.github.bucket4j.Bucket;
 
@@ -51,6 +53,9 @@ public class AuthServicio {
 	
 	@Autowired
 	private RateLimit rateLimitServicio;
+	
+	@Autowired
+	private RegionRepository regionRepository;
 
 	private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
@@ -71,6 +76,7 @@ public class AuthServicio {
 	    }
 
 		Organizador o = new Organizador();
+		
 		o.setNombre(limpiar(dto.nombre));
 		o.setApellido(limpiar(dto.apellido));
 		o.setTelefono(limpiar(dto.telefono));
@@ -81,7 +87,25 @@ public class AuthServicio {
 		o.setFechaNacimiento(dto.fechaNacimiento);
 		o.setFotoPerfil(dto.fotoPerfil);
 		o.setVerificado(false);
-		o.setRol(Rol.ORGANIZADOR);
+		
+		Rol rolFinal = Rol.ORGANIZADOR;
+
+		if (dto.getRol() == Rol.ADMIN) {
+
+		    // validar que quien crea sea SUPER_ADMIN
+
+		    rolFinal = Rol.ADMIN;
+		}
+
+		o.setRol(rolFinal);
+		
+		Region region = regionRepository.findById(dto.departamentoId)
+			    .orElseThrow(() -> new RuntimeException("REGION_NO_ENCONTRADA"));
+		
+		if (dto.departamentoId == null) {
+		    throw new RuntimeException("REGION_OBLIGATORIA");
+		}
+			o.setRegion(region);
 
 	    // 📸 Manejo seguro de imagen
 	    if (imagen != null && !imagen.isEmpty()) {
@@ -148,10 +172,20 @@ public class AuthServicio {
 	    if (!encoder.matches(dto.password, o.getClave())) {
 	        throw new IllegalArgumentException("USUARIO_CONTRASEÑA_INCORRECTOS");
 	    }
+	    
+	    Region region = o.getRegion();
 
 	    String token = jwt.generarToken(o.getEmail(), o.getRol().name());
 
-	    return new LoginOrgResponseDTO(o.getId(), token, o.getNombre(), o.getRol().name());
+	    return new LoginOrgResponseDTO(
+	    		o.getId(), 
+	    		token, 
+	    		o.getNombre(), 
+	    		o.getRol().name(),
+	            region != null ? region.getId() : null,
+	            region != null ? region.getProvincia() : null,
+	            region != null ? region.getDepartamento() : null
+	    		);
 	}
 	
     public void crearToken(String email) {

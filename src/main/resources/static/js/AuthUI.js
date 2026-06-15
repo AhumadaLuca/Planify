@@ -23,7 +23,7 @@ export function actualizarMenuUsuario() {
     menu.innerHTML = `
         <span id="sidebarNombre" class="d-flex justify-content-center align-items-center text-white fw-semibold mb-2 mt-2" style="margin-right:25px;"><i class="ti ti-mood-happy-filled me-1 fs-3" aria-hidden="true"></i> ${t("hola")}, ${nombre}</span>
         <a href="#" id="linkPerfil" class="menu-item"><i class="ti ti-user-edit me-1 fs-5" aria-hidden="true"></i> ${t("miPerfil")}</a>
-        ${rol === "ADMIN" ? `<a href="#" id="linkAdminPanel" data-bs-toggle="modal" data-bs-target="#adminPanelModal" class="menu-item d-flex justify-content-start align-items-start w-100 text-decoration-none gap-2">
+        ${rol === "ADMIN" || rol === "SUPER_ADMIN" ? `<a href="#" id="linkAdminPanel" data-bs-toggle="modal" data-bs-target="#adminPanelModal" class="menu-item d-flex justify-content-start align-items-start w-100 text-decoration-none gap-2">
 			<i class="ti ti-settings me-1 fs-5" aria-hidden="true"></i> ${t("panelAdmin")}</a>` : ""}
 			
         ${rol === "ORGANIZADOR" ? `<a href="#" id="linkEventosOrganizador" data-bs-toggle="modal" data-bs-target="#modalAdministrarEventosOrganizador" class="menu-item d-flex justify-content-start align-items-center w-100 text-decoration-none gap-2">
@@ -31,6 +31,9 @@ export function actualizarMenuUsuario() {
 			
 		${rol === "ORGANIZADOR" ? `<a href="#" id="linkNuevoEvento" data-bs-toggle="modal" data-bs-target="#nuevoEventoModal" class="menu-item d-flex justify-content-start align-items-center w-100 text-decoration-none gap-2">
 			<i class="ti ti-circle-plus me-1 fs-5" aria-hidden="true"></i> ${t("agregarEvento")}</a>` : ""}
+			
+		${rol === "SUPER_ADMIN" ? `<a href="#" id="linkNuevoAdmin" data-bs-toggle="modal" data-bs-target="#registroModal" class="menu-item d-flex justify-content-start align-items-start w-100 text-decoration-none gap-2">
+			<i class="ti ti-settings me-1 fs-5" aria-hidden="true"></i> ${t("nuevoAdmin")}</a>` : ""}
         
        <a href="#" id="btnLogout" class="menu-item"><i class="ti ti-user-down me-1 fs-5" aria-hidden="true"></i> ${t("cerrarSesion")}</a>
     `;

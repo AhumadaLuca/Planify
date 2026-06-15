@@ -5,28 +5,22 @@ import { mostrarModalConfirmacion } from "./confirmarGenerico.js";
 import { abrirModalDetalle } from "./modalDetallesGenerico.js";
 import { renderEstadoEvento, renderEstadoEventoAdmin } from "./renderEstadoEvento.js";
 import { t } from "./i18n.js";
+import {manejarErrorResponse} from "./manejoErrores.js";
 
 const adminModalEl = document.getElementById("adminPanelModal");
 export const panelModal = new bootstrap.Modal(adminModalEl);
 
-let adminCache = null;
+
 
 
 
 export async function initAdminPanel(forceReload = false) {
 	const tbody = document.getElementById("eventosAdminBody");
 
-	if (adminCache && !forceReload) {
-		renderAdminTable(adminCache);
-		return;
-	}
 
 	if (!tbody) return console.error("No se encontró #eventosAdminBody en el DOM");
 
-
-	if (!adminCache || forceReload) {
 		tbody.innerHTML = `<tr><td colspan="8" class="text-center">${t("carga")}</td></tr>`;
-	}
 
 	try {
 		const resp = await fetch("/api/admin/organizadoresYeventos", {
@@ -39,8 +33,6 @@ export async function initAdminPanel(forceReload = false) {
 		}
 
 		const organizadores = await resp.json();
-
-		adminCache = organizadores;
 
 		if (!Array.isArray(organizadores) || organizadores.length === 0) {
 			tbody.innerHTML = `<tr><td colspan="8" class="text-center">${t("noOrg")}</td></tr>`;
@@ -454,7 +446,8 @@ ${t("eventoBotonEditar")}
 </button>
 
 <button class="btn btn-sm btn-outline-danger fw-bold btn-eliminar-evento"
-data-id="${ev.id}">
+data-id="${ev.id}"
+data-origen="admin">
 
 ${t("eventoBotonEliminar")}
 

@@ -2,6 +2,8 @@ package com.eventos.eventos_app.dto;
 
 import java.time.LocalDate;
 
+import com.eventos.eventos_app.models.Rol;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -45,6 +47,10 @@ public class RegistroOrgRequestDTO {
     
     public Boolean verificado;
     
+    public String provincia;
     
+    public Long departamentoId;
+    
+    public Rol rol;
     
 }

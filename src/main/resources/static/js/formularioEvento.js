@@ -61,7 +61,7 @@ export function initFormularioEvento() {
 
 	// escuchar inputs una sola vez (no dentro del submit)
 	form.addEventListener("input", (e) => {
-		if (e && e.target && e.target.id) clearFieldError(e.target.id,"evento");
+		if (e && e.target && e.target.id) clearFieldError(e.target.id, "evento");
 		if (errBox) {
 			errBox.classList.add("d-none");
 			errBox.innerText = "";
@@ -457,6 +457,7 @@ export function initFormularioEvento() {
 
 			console.log("Empezando el guardado");
 
+
 			const resp = await fetch(url, {
 				method,
 				headers: {
@@ -625,9 +626,17 @@ export function initFormularioEvento() {
 			const eventoId = e.target.dataset.id;
 			if (!eventoId) return;
 
-			if (panelModal) {
-				panelModal.hide();
-			}
+			// Detectar qué modal está realmente abierto
+			const modalVisible = document.querySelector(".modal.show");
+
+			const modalOrigen = modalVisible
+				? bootstrap.Modal.getInstance(modalVisible)
+				: null;
+
+			console.log("Modal visible:", modalVisible?.id);
+
+			// Ocultar el modal actual antes de mostrar confirmación
+			modalOrigen?.hide();
 
 			mostrarModalConfirmacion({
 				titulo: t("eventoEliminarTitulo"),
@@ -661,9 +670,12 @@ export function initFormularioEvento() {
 							cargarEventos(window.mapInstance, { force: true });
 						}
 
-						await initAdminPanel(true);
+						// Si viene del admin refrescamos el panel
+						if (modalVisible?.id === "adminPanelModal") {
+							await initAdminPanel(true);
+						}
 
-						// Recargar lista de eventos del organizador
+						// Si existe la tabla de organizador la recargamos
 						if (typeof verEventosOrganizador === "function") {
 							verEventosOrganizador();
 						}
@@ -672,13 +684,14 @@ export function initFormularioEvento() {
 						console.error("Error al eliminar evento:", error);
 						mostrarToast(t("eventoErrorEliminarMostrar"), "danger");
 					} finally {
-						if (panelModal)
-							panelModal.show();
+						// Reabrir el modal desde donde se lanzó la acción
+            modalOrigen?.show();
 					}
 				},
 				onCancel: () => {
-					if (panelModal)
-						panelModal.show();
+					
+					// Reabrir el modal original
+        modalOrigen?.show();
 				}
 			});
 		}

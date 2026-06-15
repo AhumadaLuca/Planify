@@ -19,6 +19,8 @@ import { recuperarContra } from './recuperarContra.js';
 import { t } from "./i18n.js";
 import { mostrarToast } from "./toastsGenerico.js";
 
+export let regionesCache = [];
+
 export async function iniciarApp() {
 
 	window.addEventListener("offline", () => {
@@ -69,6 +71,7 @@ export async function iniciarApp() {
 				localStorage.removeItem("token");
 				localStorage.removeItem("rol");
 				localStorage.removeItem("nombre");
+				localStorage.removeItem("regionId");
 			}
 		}
 	}
@@ -177,10 +180,99 @@ export async function iniciarApp() {
 
 			if (modo === "editar") {
 				editarPerfil(form);
-			} else {
-				registrarOrganizador(form);
 			}
 
 		});
+
+
+	// Cargar regiones al iniciar
+	fetch('/api/regiones')
+		.then(res => res.json())
+		.then(data => {
+			regionesCache = data;
+			cargarProvincias();
+		});
+
+	function cargarProvincias() {
+		const select = document.getElementById("provincia");
+
+		const provincias = [...new Set(regionesCache.map(r => r.provincia))];
+
+		provincias.forEach(p => {
+			const option = document.createElement("option");
+			option.value = p;
+			option.textContent = p;
+			select.appendChild(option);
+		});
+	}
+
+	function cargarDepartamentos(provinciaSeleccionada) {
+		const selectDepto = document.getElementById("departamento");
+
+
+
+		const departamentos = regionesCache.filter(r => r.provincia === provinciaSeleccionada);
+
+		departamentos.forEach(r => {
+			const option = document.createElement("option");
+			option.value = r.id; // 👈 importante
+			option.textContent = r.departamento;
+			selectDepto.appendChild(option);
+		});
+	}
+
+	// Cuando cambia provincia
+	document.getElementById("provincia").addEventListener("change", function() {
+
+		const provincia = this.value;
+		const selectDepto = document.getElementById("departamento");
+
+		selectDepto.innerHTML = "";
+
+		const filtrados = regionesCache.filter(r => r.provincia === provincia);
+
+		filtrados.forEach(r => {
+			const option = document.createElement("option");
+			option.value = r.id; // 🔥 IMPORTANTE
+			option.textContent = r.departamento;
+			selectDepto.appendChild(option);
+		});
+
+	});
+
+	document.getElementById("provincia").addEventListener("change", (e) => {
+		const provincia = e.target.value;
+		cargarDepartamentos(provincia);
+	});
+	
+	document.addEventListener("click", (e) => {
+		if (e.target.closest("#linkNuevoAdmin")) {
+
+			const form = document.getElementById("formRegistro");
+
+			form.dataset.tipo = "ADMIN";
+
+			document.getElementById("registroModalTitulo").textContent =
+				"Registro - Administrador";
+
+			document.getElementById("btnRegistroOrganizador").textContent =
+				"Crear administrador";
+		}
+	});
+
+	document.addEventListener("click", (e) => {
+		if (e.target.closest("#linkRegistroOrganizador")) {
+
+			const form = document.getElementById("formRegistro");
+
+			form.dataset.tipo = "ORGANIZADOR";
+
+			document.getElementById("registroModalTitulo").textContent =
+				"Registro - Organizador";
+
+			document.getElementById("btnRegistroOrganizador").textContent =
+				"Registrar";
+		}
+	});
 
 }

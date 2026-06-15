@@ -3,6 +3,63 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 
 ---
 
+## [v1.4.0] - 2026-06-15
+
+### Añadido
+- Implementación de la entidad `Region` (provincia, departamento y geometría GeoJSON).
+- Carga inicial automatizada de regiones desde archivos GeoJSON.
+- Asociación de regiones a organizadores y eventos.
+- Incorporación de `regionId` en el flujo de registro de organizadores.
+- Incorporación del rol `SUPER_ADMIN`.
+- Control de acceso contextual basado en región.
+- Filtrado regional de organizadores y eventos.
+- Restricción geográfica para la creación de eventos según la región asignada al organizador.
+- Endpoint unificado para obtención de regiones.
+- Implementación de selects dinámicos Provincia → Departamento en formularios.
+- Integración de Leaflet para selección y visualización de ubicaciones.
+- Implementación de búsqueda de direcciones mediante OpenCage Geocoding.
+- Visualización de regiones en mapas utilizando datos GeoJSON.
+- Integración de Turf.js para validación geográfica en cliente.
+- Sistema de validación geográfica basado en polígonos utilizando JTS.
+
+### Mejorado
+- Separación de permisos entre `ORGANIZADOR`, `ADMIN` y `SUPER_ADMIN`.
+- Refactorización de servicios para aplicar seguridad contextual por región.
+- Optimización de payloads mediante DTOs livianos.
+- Eliminación del envío innecesario de geometrías completas (`geo_json`) en respuestas.
+- Implementación de caché local de regiones para reducir llamadas al backend.
+- Mejora de validaciones de formularios incorporando selección y control de regiones.
+- Sincronización automática de coordenadas geográficas con formularios de eventos.
+- Ajuste automático del mapa mediante `fitBounds` según la región asignada.
+- Verificación en tiempo real de ubicaciones permitidas utilizando Turf.js.
+- Mejora del feedback visual al seleccionar ubicaciones fuera de la región permitida.
+- Preparación de la arquitectura para futuras funcionalidades geográficas y expansión regional.
+
+### Seguridad
+- Externalización de credenciales sensibles mediante variables de entorno.
+- Eliminación de claves y secretos del repositorio.
+- Incorporación de configuración preparada para múltiples entornos de despliegue.
+- Separación de datos sensibles de la configuración versionada en Git.
+
+### Refactor
+- Reestructuración del modelo de seguridad para soportar permisos regionales.
+- Adaptación del flujo de autenticación para usuarios con distintos niveles de acceso regional.
+- Reorganización de la lógica de validación geográfica entre frontend y backend.
+- Separación clara de responsabilidades:
+  - Backend → validación, seguridad y persistencia.
+  - Frontend → validación anticipada y experiencia de usuario.
+- Eliminación de dependencias locales obsoletas incorporadas accidentalmente al proyecto.
+
+### Corregido
+- Corrección de carga de archivos GeoJSON desde recursos del proyecto (`InputStream null`).
+- Corrección del login de `SUPER_ADMIN` cuando la región asociada es nula.
+- Corrección del filtrado regional utilizando `region_id`.
+- Prevención de duplicados durante la carga inicial de regiones.
+- Corrección de navegación entre paneles durante operaciones de eventos.
+- Reemplazo de referencias estáticas a modales por detección dinámica del modal activo, garantizando la restauración correcta del contexto entre Administrador y Organizador.
+
+---
+
 ## [v1.3.0] - 2026-03-18
 
 ### Añadido

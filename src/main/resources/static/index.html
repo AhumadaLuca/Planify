@@ -298,6 +298,22 @@
 
 							</div>
 
+							<div class="col-md-12">
+								<label class="form-label" data-i18n="Provincia"></label>
+								<select id="provincia" class="form-control" required>
+									<option value="" data-i18n="seleccionarProvincia"></option>
+								</select>
+								
+							</div>
+
+							<div class="col-md-12">
+								<label class="form-label" data-i18n="Departamento"></label>
+								<select id="departamento" class="form-control" required>
+									<option value="" data-i18n="seleccionarDepartamento"></option>
+								</select>
+								
+							</div>
+
 							<div class="col-md-6">
 								<label class="form-label" data-i18n="nombreOrg"></label>
 								<input type="text" name="nombreOrganizacion" id="regNombreOrganizacion"
@@ -779,6 +795,7 @@
 	<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/sanitize-html@2.12.1/dist/sanitize-html.min.js"></script>
+	<script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 	<script type="module">
 		import {iniciarApp} from './js/app.js';
 

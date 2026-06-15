@@ -27,6 +27,7 @@ import com.eventos.eventos_app.models.Rol;
 import com.eventos.eventos_app.models.TipoEvento;
 import com.eventos.eventos_app.models.RedSocialLink;
 import com.eventos.eventos_app.models.RedSocialLinkTipo;
+import com.eventos.eventos_app.models.Region;
 import com.eventos.eventos_app.repository.CategoriaRepository;
 import com.eventos.eventos_app.repository.EventoRepository;
 
@@ -34,6 +35,9 @@ import io.github.bucket4j.Bucket;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
+
+import org.locationtech.jts.geom.*;
+import org.locationtech.jts.io.geojson.GeoJsonReader;
 
 @Service
 public class EventoServicio {
@@ -63,6 +67,13 @@ public class EventoServicio {
 		}
 
 		mapearDatosEvento(e, dto, imagen); // <-- acá llenás los campos de la entidad
+		
+		// 🔥 VALIDACIÓN GEO
+		validarUbicacionDentroDeRegion(org, dto.latitud, dto.longitud);
+
+		// asignar región automáticamente
+		e.setRegion(org.getRegion());
+		
 		eventoRepository.save(e);
 
 		return mapToDTO(e); // <-- acá devolvés el DTO al frontend
@@ -80,13 +91,27 @@ public class EventoServicio {
 		    throw new RuntimeException("EDICION_RAPIDA_EVENTOS");
 		}
 
-		boolean esAdmin = org.getRol() == Rol.ADMIN;
+		if (org.getRol() == Rol.ORGANIZADOR) {
 
-		if (!esAdmin && !e.getOrganizador().getId().equals(org.getId())) {
-			throw new RuntimeException("NO_PERMISOS_EDITAR");
+		    if (!e.getOrganizador().getId().equals(org.getId())) {
+		        throw new RuntimeException("NO_PERMISOS_EDITAR");
+		    }
+
+		} else if (org.getRol() == Rol.ADMIN) {
+
+		    String provinciaAdmin = org.getRegion().getProvincia();
+		    String provinciaEvento = e.getRegion().getProvincia();
+
+		    if (!provinciaAdmin.equals(provinciaEvento)) {
+		        throw new RuntimeException("NO_PERMISOS_REGION");
+		    }
+
 		}
 
 		mapearDatosEvento(e, dto, imagen);
+		
+		validarUbicacionDentroDeRegion(org, dto.latitud, dto.longitud);
+		
 		eventoRepository.save(e);
 
 		return mapToDTO(e);
@@ -96,6 +121,31 @@ public class EventoServicio {
 	public List<EventoResponseDTO> obtenerTodos() {
 	    return eventoRepository.findAllWithRelations()
 	            .stream()
+	            .map(this::mapToDTO)
+	            .toList();
+	}
+	
+	public List<EventoResponseDTO> obtenerEventosSegunUsuario(Organizador org) {
+
+	    List<Evento> eventos;
+
+	    if (org.getRol() == Rol.ADMIN) {
+
+	        String provincia = org.getRegion().getProvincia();
+
+	        eventos = eventoRepository.findByRegionProvincia(provincia);
+
+	    } else if (org.getRol() == Rol.ORGANIZADOR) {
+
+	        eventos = eventoRepository.findByOrganizadorId(org.getId());
+
+	    } else { // SUPER_ADMIN
+
+	        eventos = eventoRepository.findAll();
+
+	    }
+
+	    return eventos.stream()
 	            .map(this::mapToDTO)
 	            .toList();
 	}
@@ -114,10 +164,21 @@ public class EventoServicio {
 	public void eliminarEvento(Long id, Organizador organizador) {
 		Evento evento = eventoRepository.findById(id).orElseThrow(() -> new RuntimeException("EVENTO_NO_ENCONTRADO"));
 
-		boolean esAdmin = organizador.getRol() == Rol.ADMIN;
+		if (organizador.getRol() == Rol.ORGANIZADOR) {
 
-		if (!esAdmin && !evento.getOrganizador().getId().equals(organizador.getId())) {
-			throw new RuntimeException("NO_ELIMINAR_EVENTOS");
+		    if (!evento.getOrganizador().getId().equals(organizador.getId())) {
+		        throw new RuntimeException("NO_ELIMINAR_EVENTOS");
+		    }
+
+		} else if (organizador.getRol() == Rol.ADMIN) {
+
+		    String provinciaAdmin = organizador.getRegion().getProvincia();
+		    String provinciaEvento = evento.getRegion().getProvincia();
+
+		    if (!provinciaAdmin.equals(provinciaEvento)) {
+		        throw new RuntimeException("NO_ELIMINAR_REGION");
+		    }
+
 		}
 
 		eventoRepository.delete(evento);
@@ -273,6 +334,41 @@ public class EventoServicio {
 		    e.setFechaFin(null);
 		}
 		
+	}
+	
+	private void validarUbicacionDentroDeRegion(Organizador org, Double lat, Double lng) {
+
+	    if (lat == null || lng == null) {
+	        throw new RuntimeException("COORDENADAS_OBLIGATORIAS");
+	    }
+
+	    Region region = org.getRegion();
+
+	    if (region == null || region.getGeoJson() == null) {
+	        throw new RuntimeException("REGION_SIN_POLIGONO");
+	    }
+
+	    boolean dentro = pointInPolygon(region.getGeoJson(), lat, lng);
+
+	    if (!dentro) {
+	        throw new RuntimeException("EVENTO_FUERA_DE_TU_REGION");
+	    }
+	}
+	
+	private boolean pointInPolygon(String geoJson, Double lat, Double lng) {
+	    try {
+	        GeometryFactory geometryFactory = new GeometryFactory();
+
+	        GeoJsonReader reader = new GeoJsonReader(geometryFactory);
+	        Geometry polygon = reader.read(geoJson);
+
+	        Point point = geometryFactory.createPoint(new Coordinate(lng, lat));
+
+	        return polygon.contains(point);
+
+	    } catch (Exception e) {
+	        throw new RuntimeException("ERROR_VALIDACION_GEO");
+	    }
 	}
 	
 	private String limpiar(String input) {

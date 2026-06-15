@@ -52,8 +52,6 @@ public class Evento {
 
     @Column(name = "url_venta_externa", nullable = true)
     private String urlVentaExterna;
-    
-    
 
     @Column(name = "requiere_verificar_edad", nullable = false)
     private Boolean requiereVerificarEdad;
@@ -63,6 +61,14 @@ public class Evento {
 
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado", nullable = false)
+    private EstadoEvento estado = EstadoEvento.PENDIENTE;
+    
+    @Column(name = "tipo", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private TipoEvento tipo;
 
     // Relaciones
     @ManyToOne(fetch = FetchType.LAZY)
@@ -78,14 +84,9 @@ public class Evento {
     @OneToMany(mappedBy = "evento", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RedSocialLink> redesSociales = new ArrayList<>();
     
-    @Enumerated(EnumType.STRING)
-    @Column(name = "estado", nullable = false)
-    private EstadoEvento estado = EstadoEvento.PENDIENTE;
-    
-    @Column(name = "tipo", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private TipoEvento tipo;
-
+    @ManyToOne
+    private Region region;
+ 
     @PrePersist
     public void prePersist() {
         this.fechaCreacion = LocalDateTime.now();

@@ -29,7 +29,7 @@ public class OrganizadorController {
 
 	// Ver organizador
 	@GetMapping("/ver/{id}")
-	@PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZADOR')")
+	@PreAuthorize("hasAnyRole('ORGANIZADOR','ADMIN','SUPER_ADMIN')")
 	public ResponseEntity<?> verOrganizador(@PathVariable Long id) {
 		try {
 			return ResponseEntity.ok(organizadorServicio.verOrganizador(id));

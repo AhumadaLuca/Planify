@@ -339,6 +339,22 @@
   "ORGANIZADOR_VERIFICACION_CORRECTO": "Organizador verificado correctamente",
   "ELIMINAR_ORGANIZADOR_Y_EVENTOS_CORRECTO":"✅ Organizador y sus eventos eliminados correctamente",
   "ERROR_ELIMINAR_ORGANIZADOR":"Error al eliminar el organizador",
-  "revisarDatos": "Datos incompletos o faltantes, por favor revisarlos."
-
+  "revisarDatos": "Datos incompletos o faltantes, por favor revisarlos.",
+  "Provincia": "Provincia",
+  "Departamento": "Departamento",
+  "NO_PERISOS_REGION": "No tienes permisos para actualizar en esta región.",
+  "NO_ELIMINAR_REGION": "No tienes permisos para eliminar en esta región.",
+  "COORDENADAS_OBLIGATORIAS": "Inserte las coordenadas o la dirección para obtener las coordenadas.",
+  "REGION_SIN_POLIGONO": "Error al obtener el polígono de la región.",
+  "EVENTO_FUERA_DE_TU_REGION": "El evento no se encuentra dentro de la región.",
+"ERROR_VALIDACION_GEO": "Error en validar la región.",
+"REGION_NO_ENCONTRADA": "No se ha podido encontrar su región.",
+"REGION_OBLIGATORIA": "Ingrese una región.",
+"registroProvincia": "Debe seleccionar una provincia y luego departamento.",
+"registroDepartamento": "Debe seleccionar un departamento.",
+"seleccionarProvincia": "Seleccione una provincia...",
+"seleccionarDepartamento": "Seleccione un departamento...",
+"fotoPerfil": "Foto de perfil",
+"NO_EVENTOS_REGISTRADO": "No hay eventos registrados",
+"nuevoAdmin": "Crear nuevo ADMIN"
 }

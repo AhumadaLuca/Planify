@@ -2,5 +2,6 @@ package com.eventos.eventos_app.models;
 
 public enum Rol {
     ORGANIZADOR,
-    ADMIN
+    ADMIN,
+    SUPER_ADMIN
 }
